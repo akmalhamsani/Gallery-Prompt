@@ -137,6 +137,7 @@
         let db, auth, galleryCollectionRef, categoriesCollectionRef;
         let allGalleryItems = []; // Simpan semua item untuk penapisan
         let currentUserId = null; // Simpan ID pengguna semasa
+        let isSuperUser = false; // <-- TAMBAH PEMBOLEHUBAH INI
 
         // Gunakan config Firebase anda yang sedia ada
         const firebaseConfig = {
@@ -183,8 +184,12 @@
                 card.dataset.prompt = item.prompt;
                 card.dataset.id = item.id;
 
-                // Hanya tunjuk butang padam jika pengguna log masuk DAN item ini miliknya
-                const deleteButtonHtml = (currentUserId && item.userId === currentUserId) ?
+                // --- LOGIK BARU UNTUK BUTANG PADAM ---
+                // Tentukan jika butang padam patut ditunjukkan
+                const canDelete = (currentUserId && item.userId === currentUserId) || isSuperUser;
+
+                // Hanya tunjuk butang padam jika pengguna log masuk DAN item ini miliknya, ATAU jika pengguna adalah Super User
+                const deleteButtonHtml = canDelete ?
                     `<button data-id="${item.id}" class="delete-btn absolute top-2 right-2 z-20 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm leading-none hover:bg-red-700" title="Padam">&times;</button>` : '';
 
                 // --- PERUBAHAN BERMULA ---
@@ -403,7 +408,16 @@
                     if (user) {
                         // Pengguna log masuk
                         currentUserId = user.uid;
-                        userWelcome.textContent = `Selamat datang, ${user.displayName || 'Pengguna'}!`;
+                        
+                        // --- SEMAK SUPER USER DI SINI ---
+                        if (user.email === 'akmalhamsani@gmail.com') {
+                            isSuperUser = true;
+                            userWelcome.textContent = `Selamat datang, Super User ${user.displayName || ''}!`;
+                        } else {
+                            isSuperUser = false;
+                            userWelcome.textContent = `Selamat datang, ${user.displayName || 'Pengguna'}!`;
+                        }
+                        
                         userWelcome.classList.remove('hidden');
                         loginBtn.classList.add('hidden');
                         logoutBtn.classList.remove('hidden');
@@ -411,6 +425,7 @@
                     } else {
                         // Pengguna log keluar
                         currentUserId = null;
+                        isSuperUser = false; // <-- TAMBAH INI (Reset bila log keluar)
                         userWelcome.classList.add('hidden');
                         loginBtn.classList.remove('hidden');
                         logoutBtn.classList.add('hidden');
