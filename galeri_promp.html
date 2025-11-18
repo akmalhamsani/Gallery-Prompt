@@ -85,7 +85,25 @@
 
         // Pembolehubah global Firebase
         let db, auth, userId, galleryCollectionRef;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        
+        // --- PERUBAHAN BERMULA ---
+        
+        // 1. TAMPAL (PASTE) KONFIGURASI FIREBASE ANDA DARI LANGKAH 1 DI SINI
+        const firebaseConfig = {
+            apiKey: "AIzaSyCpOw2nHuxHpKfkDxZzAe4nyqXrmhZZbSM",
+            authDomain: "galeri-promp-saya.firebaseapp.com",
+            projectId: "galeri-promp-saya",
+            storageBucket: "galeri-promp-saya.firebasestorage.app",
+            messagingSenderId: "963487890074",
+            appId: "1:963487890074:web:9140f140b018503380bd23"
+        };
+
+        // 2. TAMPAL APP ID ANDA (dari atas) ATAU NAMA RAWAK DI SINI
+        // Ini HANYA untuk menstrukturkan pangkalan data, ia tidak perlu sepadan dengan "appId" di atas
+        const appId = 'galeri-saya-app'; 
+        
+        // --- PERUBAHAN TAMAT ---
+
 
         // Fungsi untuk memaparkan galeri
         function renderGallery(items) {
@@ -253,7 +271,7 @@
         // Fungsi utama untuk memulakan Firebase
         async function initializeFirebaseAndAuth() {
             try {
-                const firebaseConfig = JSON.parse(__firebase_config);
+                // Gunakan config yang anda tampal di atas
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -281,12 +299,11 @@
                     }
                 });
 
-                // Log masuk pengguna
-                if (typeof __initial_auth_token !== 'undefined') {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // --- PERUBAHAN BERMULA ---
+                // Log masuk pengguna (kita hanya guna signInAnonymously sekarang)
+                console.log("Mencuba log masuk tanpa nama...");
+                await signInAnonymously(auth);
+                // --- PERUBAHAN TAMAT ---
 
             } catch (error) {
                 console.error("Error memulakan Firebase:", error);
