@@ -175,22 +175,48 @@
             // Loop melalui setiap item dan cipta kad HTML
             itemsToRender.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'gallery-item bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transition-transform transform hover:scale-105 relative';
+                // --- PERUBAHAN BERMULA ---
+                // 1. Tukar kelas: tambah 'group', buang 'overflow-hidden' & 'hover:scale-105'
+                card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative';
+                // --- PERUBAHAN TAMAT ---
+                
                 card.dataset.prompt = item.prompt;
                 card.dataset.id = item.id;
 
                 // Hanya tunjuk butang padam jika pengguna log masuk DAN item ini miliknya
                 const deleteButtonHtml = (currentUserId && item.userId === currentUserId) ?
-                    `<button data-id="${item.id}" class="delete-btn absolute top-2 right-2 z-10 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm leading-none hover:bg-red-700" title="Padam">&times;</button>` : '';
+                    `<button data-id="${item.id}" class="delete-btn absolute top-2 right-2 z-20 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-sm leading-none hover:bg-red-700" title="Padam">&times;</button>` : '';
 
+                // --- PERUBAHAN BERMULA ---
+                // 2. Guna struktur HTML baru untuk kad
                 card.innerHTML = `
                     ${deleteButtonHtml}
-                    <img src="${item.imageUrl}" alt="Gambar Galeri" class="w-full h-48 object-cover" onerror="this.src='https_placehold.co/600x400/cccccc/444444?text=Imej+Rosak'; this.alt='Imej Gagal Dimuat'">
+                    
+                    <!-- Bekas untuk Imej dan Lapisan (Overlays) -->
+                    <div class="relative rounded-t-lg">
+                        <!-- 1. Imej (Ratio Asal) -->
+                        <img src="${item.imageUrl}" alt="Gambar Galeri" class="w-full h-auto block rounded-t-lg" 
+                             onerror="this.src='https://placehold.co/600x400/cccccc/444444?text=Imej+Rosak'; this.alt='Imej Gagal Dimuat'">
+                        
+                        <!-- 2. Promp di bahagian bawah (Sentiasa Nampak) -->
+                        <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent rounded-b-lg">
+                            <p class="text-sm text-white line-clamp-2">${item.prompt}</p>
+                        </div>
+                        
+                        <!-- 3. Lapisan Preview Penuh (Hanya pada Hover/Sentuh) -->
+                        <div class="absolute inset-0 bg-black/80 text-white p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-y-auto rounded-t-lg z-10">
+                            <h4 class="font-bold mb-2 text-base">Promp Penuh:</h4>
+                            <p class="text-sm">${item.prompt}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- 4. Kategori (di bawah gambar) -->
                     <div class="p-4">
                         <p class="text-xs font-semibold text-blue-600 uppercase mb-1">${item.category || 'Tiada Kategori'}</p>
-                        <p class="text-sm text-gray-700 line-clamp-3">${item.prompt}</p>
                     </div>
                 `;
+                // --- PERUBAHAN TAMAT ---
+                
                 galleryContainer.appendChild(card);
             });
         }
