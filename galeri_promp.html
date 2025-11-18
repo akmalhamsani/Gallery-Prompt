@@ -111,26 +111,31 @@
 
     </main>
 
-    <!-- Modal Lihat Penuh (NEW) -->
+    <!-- Modal Lihat Penuh (DIPERBAIKI UNTUK MOBILE SCROLL) -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
+        <!-- Ditambah flex layout yang lebih ketat untuk mobile -->
+        <div class="bg-white w-full max-w-4xl max-h-[90vh] h-auto rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
+            
             <!-- Tombol Tutup -->
             <button id="close-modal-btn" class="absolute top-2 right-2 z-10 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
             
-            <!-- Bahagian Gambar Modal -->
-            <div class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2">
-                <img id="modal-img" src="" class="max-h-[40vh] md:max-h-[85vh] w-auto object-contain rounded-lg">
+            <!-- Bahagian Gambar Modal (shrink-0 memastikan ia tidak 'penyek' bila teks panjang) -->
+            <div class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0">
+                <img id="modal-img" src="" class="max-h-[30vh] md:max-h-[85vh] w-auto object-contain rounded-lg">
             </div>
             
             <!-- Bahagian Teks Modal -->
-            <div class="w-full md:w-1/2 p-6 flex flex-col bg-white">
-                <h3 class="text-lg font-bold text-gray-800 mb-2 border-b pb-2">Promp Penuh</h3>
-                <div class="flex-grow overflow-y-auto pr-2 mb-4 custom-scroll">
+            <!-- PENTING: min-h-0 dan flex-1 membolehkan bahagian ini scroll secara bebas dalam flex container -->
+            <div class="w-full md:w-1/2 p-6 flex flex-col bg-white flex-1 min-h-0">
+                <h3 class="text-lg font-bold text-gray-800 mb-2 border-b pb-2 shrink-0">Promp Penuh</h3>
+                
+                <!-- Text Scroll Area -->
+                <div class="flex-grow overflow-y-auto pr-2 mb-4 custom-scroll overscroll-contain">
                     <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-gray-50 p-3 rounded border"></p>
                 </div>
                 
-                <!-- Info Footer Modal -->
-                <div class="mt-auto pt-4 border-t flex flex-col gap-3">
+                <!-- Info Footer Modal (shrink-0 memastikan footer sentiasa nampak di bawah) -->
+                <div class="mt-auto pt-4 border-t flex flex-col gap-3 shrink-0">
                     <div class="flex justify-between text-xs text-gray-500">
                         <span id="modal-category" class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold"></span>
                         <span id="modal-uploader"></span>
@@ -285,8 +290,6 @@
                         </div>
 
                         <!-- FIX: Overlay Hover (Tiada Scroll, Tiada pointer events) -->
-                        <!-- overflow-hidden penting untuk elak scroll trap pada mobile -->
-                        <!-- pointer-events-none membolehkan scroll page tembus overlay -->
                         <div class="absolute inset-0 bg-black/80 text-white p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden z-10 pointer-events-none flex flex-col">
                             <h4 class="font-bold mb-1 text-xs text-gray-400 uppercase">Promp Penuh:</h4>
                             <p class="text-sm leading-relaxed line-clamp-[10] text-gray-200">${item.prompt}</p>
