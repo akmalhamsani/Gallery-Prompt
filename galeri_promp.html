@@ -14,25 +14,30 @@
         .gallery-item:hover .delete-btn, .gallery-item:hover .approve-btn, .gallery-item:hover .view-btn {
             opacity: 1;
         }
-        /* Sentiasa tunjuk butang pada mobile jika perlu, atau bergantung pada hover (mobile behavior: tap once to hover) */
         @media (hover: none) {
             .gallery-item .view-btn { opacity: 1; }
         }
-        
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        /* Style untuk Nav Button yang aktif */
         .nav-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .nav-btn { background-color: white; color: #4b5563; border: 1px solid #d1d5db; }
+
+        /* --- DINAMIK SIZE CSS --- */
+        :root {
+            --img-height: 300px; /* Tinggi lalai */
+        }
+        .dynamic-img {
+            height: var(--img-height);
+            transition: height 0.1s ease-out;
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-6 md:p-10">
 
-    <main class="max-w-8xl mx-auto">
+    <main class="max-w-full mx-auto"> <!-- Tukar max-w-8xl ke full untuk layout melintang penuh -->
 
         <!-- Header -->
-        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 px-4">
             <div>
                 <h1 class="text-3xl md:text-4xl font-bold text-center sm:text-left text-gray-800">Galeri Promp</h1>
                 <p id="user-welcome" class="text-gray-600 text-center sm:text-left hidden text-sm mt-1"></p>
@@ -43,7 +48,6 @@
                     Log Masuk dengan Google
                 </button>
 
-                <!-- User Controls -->
                 <div id="user-controls" class="hidden flex flex-wrap justify-center sm:justify-end items-center gap-2">
                     <div class="flex items-center gap-2 mr-2">
                         <button id="nav-gallery" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Semua Gambar Approved">Galeri</button>
@@ -63,7 +67,7 @@
         </div>
 
         <!-- Borang Tambah -->
-        <div id="add-form-container" class="hidden mb-10">
+        <div id="add-form-container" class="hidden mb-10 px-4">
             <form id="add-form" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto border-l-4 border-green-500">
                 <h2 class="text-xl font-semibold text-gray-800 mb-4">Tambah Promp Baru (Perlu Approval)</h2>
                 <div class="space-y-4">
@@ -91,50 +95,49 @@
         </div>
 
         <!-- Controls Bar -->
-        <div class="mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="overflow-x-auto pb-2 hide-scrollbar w-full md:w-auto">
-                <div id="category-tabs" class="flex space-x-2 min-w-max px-1 justify-center md:justify-start">
+        <div class="mb-6 mx-4 flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+            <!-- Kiri: Tab Kategori -->
+            <div class="overflow-x-auto pb-2 lg:pb-0 hide-scrollbar w-full lg:w-auto flex-1">
+                <div id="category-tabs" class="flex space-x-2 min-w-max px-1 justify-center lg:justify-start">
                     <button class="px-4 py-1.5 rounded-full bg-blue-600 text-white text-xs font-semibold">Semua</button>
                 </div>
             </div>
+
+            <!-- Tengah/Kanan: Slider Saiz Gambar -->
+            <div class="flex items-center gap-3 px-4 border-l border-gray-200">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                <!-- Slider: Julat min/max disesuaikan -->
+                <input type="range" id="size-slider" min="150" max="600" value="300" class="w-24 sm:w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            </div>
+
             <button id="approve-all-btn" class="hidden bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-sm font-bold flex items-center gap-2 animate-pulse">
                 <span class="text-lg">✓</span> Approve Semua (<span id="approve-all-count">0</span>)
             </button>
         </div>
 
-        <h2 id="current-view-title" class="text-xl font-bold text-gray-700 mb-4 border-b pb-2">Galeri Awam</h2>
+        <h2 id="current-view-title" class="text-xl font-bold text-gray-700 mb-4 border-b pb-2 px-4">Galeri Awam</h2>
 
         <!-- Galeri Container -->
-        <div id="gallery-container" class="flex flex-wrap gap-4 justify-center">
+        <!-- PENTING: flex-wrap dan justify-center untuk layout flow -->
+        <div id="gallery-container" class="flex flex-wrap gap-2 px-2 justify-center">
             <p id="loading-message" class="text-gray-500 w-full text-center">Memuatkan...</p>
         </div>
 
     </main>
 
-    <!-- Modal Lihat Penuh (DIPERBAIKI UNTUK MOBILE SCROLL) -->
+    <!-- Modal Lihat Penuh -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-        <!-- Ditambah flex layout yang lebih ketat untuk mobile -->
         <div class="bg-white w-full max-w-4xl max-h-[90vh] h-auto rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
-            
-            <!-- Tombol Tutup -->
             <button id="close-modal-btn" class="absolute top-2 right-2 z-10 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
-            
-            <!-- Bahagian Gambar Modal (shrink-0 memastikan ia tidak 'penyek' bila teks panjang) -->
             <div class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0">
                 <img id="modal-img" src="" class="max-h-[30vh] md:max-h-[85vh] w-auto object-contain rounded-lg">
             </div>
-            
-            <!-- Bahagian Teks Modal -->
-            <!-- PENTING: min-h-0 dan flex-1 membolehkan bahagian ini scroll secara bebas dalam flex container -->
             <div class="w-full md:w-1/2 p-6 flex flex-col bg-white flex-1 min-h-0">
                 <h3 class="text-lg font-bold text-gray-800 mb-2 border-b pb-2 shrink-0">Promp Penuh</h3>
-                
-                <!-- Text Scroll Area -->
                 <div class="flex-grow overflow-y-auto pr-2 mb-4 custom-scroll overscroll-contain">
                     <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-gray-50 p-3 rounded border"></p>
                 </div>
-                
-                <!-- Info Footer Modal (shrink-0 memastikan footer sentiasa nampak di bawah) -->
                 <div class="mt-auto pt-4 border-t flex flex-col gap-3 shrink-0">
                     <div class="flex justify-between text-xs text-gray-500">
                         <span id="modal-category" class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold"></span>
@@ -149,12 +152,10 @@
         </div>
     </div>
 
-    <!-- Notification -->
     <div id="notification" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-50 flex items-center gap-2">
         <span id="notif-msg">Mesej</span>
     </div>
 
-    <!-- Firebase Script -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -175,7 +176,6 @@
         let allItems = [], currentUserId = null, isSuperUser = false;
         let currentView = 'gallery', currentCategory = 'all';
 
-        // DOM Elements
         const els = {
             loginBtn: document.getElementById('login-btn'),
             userControls: document.getElementById('user-controls'),
@@ -198,6 +198,7 @@
             modalUploader: document.getElementById('modal-uploader'),
             modalCopyBtn: document.getElementById('modal-copy-btn'),
             closeModalBtn: document.getElementById('close-modal-btn'),
+            sizeSlider: document.getElementById('size-slider'),
             navs: {
                 gallery: document.getElementById('nav-gallery'),
                 myprompt: document.getElementById('nav-myprompt'),
@@ -209,6 +210,12 @@
                 request: document.getElementById('request-count-admin')
             }
         };
+
+        // --- SLIDER LOGIC ---
+        els.sizeSlider.addEventListener('input', (e) => {
+            const size = e.target.value;
+            document.documentElement.style.setProperty('--img-height', `${size}px`);
+        });
 
         function switchView(viewName) {
             currentView = viewName;
@@ -246,12 +253,13 @@
 
             itemsToShow.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative flex-grow-0 flex-shrink-0 hover:shadow-xl transition-shadow select-none';
+                // PENTING: flex-grow benarkan kad mengembang mengisi ruang kosong dalam baris
+                // flex-shrink-0 dibuang supaya boleh shrink sikit jika perlu, tapi biasanya grow yang penting
+                card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative flex-grow hover:shadow-xl transition-shadow select-none overflow-hidden';
                 
                 const isOwner = currentUserId && item.userId === currentUserId;
                 const status = item.status || 'approved';
                 const isPending = status === 'pending';
-
                 const canDelete = isOwner || isSuperUser;
                 const deleteBtn = canDelete ? 
                     `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-2 right-2 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : '';
@@ -268,32 +276,31 @@
                     statusBadge = `<span class="absolute top-2 left-2 z-10 ${badgeColor} text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm uppercase font-bold tracking-wider opacity-90">${badgeText}</span>`;
                 }
 
-                // NEW: View Button (Eye Icon) for Modal
                 const viewBtn = `<button onclick="event.stopPropagation(); window.openModal('${item.id}')" class="view-btn absolute bottom-[60px] right-2 z-20 bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black backdrop-blur-sm" title="Lihat Penuh"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>`;
 
-                // Click logic: Card body = Copy
                 card.onclick = (e) => {
                     if (!e.target.closest('button')) copyToClipboard(item.prompt);
                 };
 
+                // PENTING:
+                // dynamic-img set ketinggian ikut slider.
+                // min-w-full pastikan gambar melebar jika kad di-stretch oleh flex-grow.
+                // object-cover pastikan gambar penuh (tak penyek) walaupun aspect ratio lari sikit.
                 card.innerHTML = `
                     ${deleteBtn}
                     ${approveBtn}
                     ${statusBadge}
                     ${viewBtn}
                     <div class="relative rounded-t-lg overflow-hidden">
-                        <img src="${item.imageUrl}" class="h-64 md:h-80 w-auto object-cover block min-w-[180px] transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=Error'">
+                        <img src="${item.imageUrl}" class="dynamic-img w-auto min-w-full object-cover block transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=Error'">
                         
-                        <!-- Gradient Overlay (Sentiasa ada) -->
                         <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none">
                             <p class="text-sm text-white line-clamp-1 font-medium">${item.prompt}</p>
                         </div>
 
-                        <!-- FIX: Overlay Hover (Tiada Scroll, Tiada pointer events) -->
                         <div class="absolute inset-0 bg-black/80 text-white p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden z-10 pointer-events-none flex flex-col">
                             <h4 class="font-bold mb-1 text-xs text-gray-400 uppercase">Promp Penuh:</h4>
                             <p class="text-sm leading-relaxed line-clamp-[10] text-gray-200">${item.prompt}</p>
-                            <!-- Mesej Bantuan Visual -->
                             <p class="mt-auto text-[10px] text-center text-gray-400 italic">(Klik kad untuk salin, atau mata untuk lihat)</p>
                         </div>
                     </div>
@@ -305,29 +312,26 @@
                 els.gallery.appendChild(card);
             });
             
-            for(let i=0; i<5; i++) els.gallery.appendChild(document.createElement('div')).className = 'flex-grow h-0 p-0 m-0 opacity-0';
+            // Spacers untuk baris terakhir supaya tak kembang semangkuk (penting untuk flex-grow layout)
+            for(let i=0; i<8; i++) els.gallery.appendChild(document.createElement('div')).className = 'flex-grow h-0 p-0 m-0 opacity-0 border-0';
         }
 
         // --- MODAL FUNCTIONS ---
         window.openModal = (id) => {
             const item = allItems.find(i => i.id === id);
             if(!item) return;
-
             els.modalImg.src = item.imageUrl;
             els.modalPrompt.textContent = item.prompt;
             els.modalCategory.textContent = item.category || 'Umum';
             els.modalUploader.textContent = `Uploaded by: ${item.userName || 'User'}`;
-            
-            // Setup Copy Button inside Modal
             els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt);
-
             els.modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Disable background scroll
+            document.body.style.overflow = 'hidden';
         };
 
         window.closeModal = () => {
             els.modal.classList.add('hidden');
-            document.body.style.overflow = ''; // Enable background scroll
+            document.body.style.overflow = '';
         };
 
         // --- FIREBASE ACTIONS ---
@@ -441,7 +445,7 @@
         };
         els.approveAllBtn.onclick = window.approveAll;
         els.closeModalBtn.onclick = window.closeModal;
-        els.modal.onclick = (e) => { if(e.target === els.modal) window.closeModal(); }; // Close on clicking backdrop
+        els.modal.onclick = (e) => { if(e.target === els.modal) window.closeModal(); }; 
         
         Object.keys(els.navs).forEach(key => { if(els.navs[key]) els.navs[key].onclick = () => switchView(key); });
         document.addEventListener('DOMContentLoaded', init);
