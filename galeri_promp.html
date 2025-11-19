@@ -91,18 +91,32 @@
         </div>
     </main>
 
-    <!-- Modal Lihat Penuh -->
+    <!-- Modal Lihat Penuh (RESPONSIF SCROLL) -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">&lt;</button>
-        <div id="modal-content-wrapper" class="bg-white w-full max-w-5xl max-h-[95vh] h-[90vh] rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
-            <button id="close-modal-btn" class="absolute top-2 right-2 z-30 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
+        
+        <!-- 
+            PERUBAHAN DI SINI:
+            Mobile: h-auto, max-h-[90vh], overflow-y-auto (Skrol satu halaman), flex-col
+            Desktop: h-[90vh], overflow-hidden, flex-row (Skrol berasingan di kanan)
+        -->
+        <div id="modal-content-wrapper" class="bg-white w-full max-w-5xl h-auto max-h-[90vh] md:h-[90vh] rounded-xl shadow-2xl relative animate-fade-in flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
             
-            <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0 md:h-full h-1/2 relative">
-                <img id="modal-img" src="" class="max-h-full max-w-full object-contain rounded-lg">
+            <!-- Butang tutup sticky di mobile supaya sentiasa nampak bila scroll -->
+            <button id="close-modal-btn" class="absolute top-2 right-2 z-30 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors sticky md:absolute">&times;</button>
+            
+            <!-- Bahagian Gambar -->
+            <!-- Mobile: w-full, h-auto (ikut tinggi gambar), min-h-[300px] -->
+            <!-- Desktop: w-1/2, h-full, object-contain -->
+            <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0 h-auto min-h-[300px] md:h-full relative">
+                <img id="modal-img" src="" class="w-full h-auto md:max-h-full md:max-w-full md:object-contain rounded-lg">
             </div>
             
-            <div class="w-full md:w-1/2 flex flex-col bg-white md:h-full h-1/2 border-l border-gray-200">
-                <div class="p-4 border-b border-gray-100">
+            <!-- Bahagian Maklumat & Komen -->
+            <!-- Desktop: flex-col h-full (untuk scroll dalaman) -->
+            <div class="w-full md:w-1/2 flex flex-col bg-white h-auto md:h-full border-l border-gray-200">
+                
+                <div class="p-4 border-b border-gray-100 shrink-0">
                     <h3 class="text-lg font-bold text-gray-800 mb-1">Maklumat Promp</h3>
                     <div class="flex justify-between text-xs text-gray-500">
                         <span id="modal-category" class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold"></span>
@@ -110,7 +124,9 @@
                     </div>
                 </div>
 
-                <div class="flex-grow overflow-y-auto p-4 custom-scroll bg-gray-50">
+                <!-- Scrollable Content Area -->
+                <!-- Desktop: overflow-y-auto, flex-grow (supaya footer kekal di bawah) -->
+                <div class="p-4 bg-gray-50 md:overflow-y-auto md:flex-grow custom-scroll">
                     <div class="mb-6">
                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Promp Penuh</h4>
                         <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white p-3 rounded border shadow-sm select-text"></p>
@@ -124,6 +140,7 @@
                     </div>
                 </div>
                 
+                <!-- Footer Area -->
                 <div class="p-3 border-t border-gray-200 bg-white shrink-0">
                     <div class="flex gap-2 mb-3">
                         <button id="modal-like-btn" class="flex-1 bg-gray-50 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200">
@@ -285,15 +302,13 @@
 
         // Fungsi render balasan (Nested Listener)
         function listenToReplies(itemId, commentId, container) {
-            // Bersihkan listener lama jika ada
             if (replyUnsubscribes[commentId]) replyUnsubscribes[commentId]();
             
             const repliesRef = collection(db, `${galleryRef.path}/${itemId}/comments/${commentId}/replies`);
             const q = query(repliesRef, orderBy('timestamp', 'asc'));
             
             replyUnsubscribes[commentId] = onSnapshot(q, (snapshot) => {
-                container.innerHTML = ''; // Reset container balasan
-                
+                container.innerHTML = ''; 
                 snapshot.forEach(docSnap => {
                     const r = docSnap.data();
                     const rid = docSnap.id;
@@ -319,11 +334,9 @@
         }
 
 
-        // --- COMMENT FUNCTIONS (UPDATED) ---
+        // --- COMMENT FUNCTIONS ---
         function listenToComments(itemId) {
             if (commentsUnsubscribe) commentsUnsubscribe();
-            
-            // Bersihkan semua reply listeners lama
             Object.values(replyUnsubscribes).forEach(unsubscribe => unsubscribe());
             replyUnsubscribes = {};
 
@@ -369,11 +382,7 @@
                             </div>
                         </div>
                         <p class="text-gray-600 leading-snug mb-2">${c.text}</p>
-                        
-                        <!-- Container untuk Replies -->
                         <div id="replies-container-${cid}" class="ml-2 pl-2 border-l-2 border-gray-100 space-y-2"></div>
-                        
-                        <!-- Form Balas (Hidden) -->
                         <div id="reply-form-${cid}" class="hidden mt-2 flex gap-2">
                              <input type="text" id="reply-input-${cid}" placeholder="Balas..." class="flex-1 p-1.5 text-xs border rounded bg-gray-50 focus:ring-1 focus:ring-blue-500">
                              <button onclick="window.postReply('${itemId}', '${cid}', '${c.userId}')" class="text-blue-600 text-xs font-bold px-2">Hantar</button>
@@ -381,13 +390,9 @@
                     `;
                     els.commentsList.appendChild(div);
                     
-                    // Setup listener untuk balasan bagi komen ini
                     const repliesContainer = div.querySelector(`#replies-container-${cid}`);
                     listenToReplies(itemId, cid, repliesContainer);
                 });
-                
-                // Scroll ke bawah hanya pada load pertama (atau boleh disable jika mengganggu)
-                // els.commentsList.parentElement.scrollTop = els.commentsList.parentElement.scrollHeight;
             });
         }
 
