@@ -4,80 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Galeri Promp (Social)</title>
-    <!-- Muat naik Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tambah library dayjs untuk format masa -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
+    <script>dayjs.extend(window.dayjs_plugin_relativeTime);</script>
     <style>
         body { font-family: "Inter", sans-serif; }
-        .gallery-item .delete-btn, .gallery-item .approve-btn, .gallery-item .view-btn {
-            opacity: 0; transition: opacity 0.2s ease-in-out;
-        }
-        .gallery-item:hover .delete-btn, .gallery-item:hover .approve-btn, .gallery-item:hover .view-btn {
-            opacity: 1;
-        }
-        @media (hover: none) {
-            .gallery-item .view-btn { opacity: 1; }
-        }
+        .gallery-item .delete-btn, .gallery-item .approve-btn, .gallery-item .view-btn { opacity: 0; transition: opacity 0.2s ease-in-out; }
+        .gallery-item:hover .delete-btn, .gallery-item:hover .approve-btn, .gallery-item:hover .view-btn { opacity: 1; }
+        @media (hover: none) { .gallery-item .view-btn { opacity: 1; } }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .nav-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .nav-btn { background-color: white; color: #4b5563; border: 1px solid #d1d5db; }
-
-        /* --- DINAMIK SIZE CSS --- */
-        :root {
-            --img-height: 300px; /* Tinggi lalai */
-        }
-        .dynamic-img {
-            height: var(--img-height);
-            transition: height 0.1s ease-out;
-        }
-        .modal-nav-btn {
-            @apply absolute z-20 p-2 text-white text-3xl opacity-60 hover:opacity-100 transition-opacity;
-            top: 50%; transform: translateY(-50%);
-        }
-        /* Animasi Like */
-        @keyframes heart-beat {
-            0% { transform: scale(1); }
-            25% { transform: scale(1.3); }
-            50% { transform: scale(1); }
-            75% { transform: scale(1.3); }
-            100% { transform: scale(1); }
-        }
+        :root { --img-height: 300px; }
+        .dynamic-img { height: var(--img-height); transition: height 0.1s ease-out; }
+        .modal-nav-btn { @apply absolute z-20 p-2 text-white text-3xl opacity-60 hover:opacity-100 transition-opacity; top: 50%; transform: translateY(-50%); }
+        @keyframes heart-beat { 0% { transform: scale(1); } 25% { transform: scale(1.3); } 50% { transform: scale(1); } 75% { transform: scale(1.3); } 100% { transform: scale(1); } }
         .like-anim { animation: heart-beat 0.4s ease-in-out; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-6 md:p-10">
 
     <main class="max-w-full mx-auto">
-
         <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 px-4">
             <div class="flex items-center gap-3">
-                <img src="https://akmalhamsani.github.io/Gallery-Prompt/logo.png" alt="Galeri Promp Logo" class="w-10 h-10 object-contain">
+                <img src="https://akmalhamsani.github.io/Gallery-Prompt/logo.png" alt="Logo" class="w-10 h-10 object-contain">
                 <div>
                     <h1 class="text-3xl md:text-4xl font-bold text-center sm:text-left text-gray-800">Galeri Promp</h1>
                     <p id="user-welcome" class="text-gray-600 text-center sm:text-left hidden text-sm mt-1"></p>
                 </div>
             </div>
-            
             <div class="flex flex-col items-end gap-2 w-full sm:w-auto">
-                <button id="login-btn" class="w-full sm:w-auto bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                    Log Masuk dengan Google
-                </button>
-
+                <button id="login-btn" class="w-full sm:w-auto bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">Log Masuk dengan Google</button>
                 <div id="user-controls" class="hidden flex flex-wrap justify-center sm:justify-end items-center gap-2">
                     <div class="flex items-center gap-2 mr-2">
-                        <button id="nav-gallery" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Semua Gambar Approved">Galeri</button>
-                        <button id="nav-liked" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Gambar yang saya like">Liked ❤️</button>
-                        <button id="nav-myprompt" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Gambar Saya">My Prompt</button>
-                        <button id="nav-pending" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden" title="Menunggu Approval">
-                            Pending <span id="pending-count-user" class="ml-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden">0</span>
-                        </button>
-                        <button id="nav-request" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden border-yellow-500 text-yellow-700" title="Permintaan Approval">
-                            Requested <span id="request-count-admin" class="ml-1 bg-red-600 text-white text-[10px] px-1.5 rounded-full hidden">0</span>
-                        </button>
+                        <button id="nav-gallery" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Galeri</button>
+                        <button id="nav-liked" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Liked ❤️</button>
+                        <button id="nav-myprompt" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">My Prompt</button>
+                        <button id="nav-pending" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">Pending <span id="pending-count-user" class="ml-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
+                        <button id="nav-request" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden border-yellow-500 text-yellow-700">Requested <span id="request-count-admin" class="ml-1 bg-red-600 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
                     </div>
                     <div class="h-8 w-px bg-gray-300 mx-1"></div>
-                    <button id="toggle-form-btn" class="w-10 h-10 rounded-full bg-green-600 text-white text-2xl font-bold flex items-center justify-center hover:bg-green-700 transition-colors duration-200 shadow-sm" title="Tambah Promp Baru">+</button>
+                    <button id="toggle-form-btn" class="w-10 h-10 rounded-full bg-green-600 text-white text-2xl font-bold flex items-center justify-center hover:bg-green-700 transition-colors duration-200 shadow-sm">+</button>
                     <button id="logout-btn" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">Log Keluar</button>
                 </div>
             </div>
@@ -86,25 +57,13 @@
         <!-- Borang Tambah -->
         <div id="add-form-container" class="hidden mb-10 px-4">
             <form id="add-form" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto border-l-4 border-green-500">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Tambah Promp Baru (Perlu Approval)</h2>
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Tambah Promp Baru</h2>
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label>
-                        <input type="text" id="image-url" placeholder="https://..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Promp</label>
-                        <textarea id="image-prompt" rows="3" placeholder="Masukkan promp..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea>
-                    </div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label><input type="text" id="image-url" placeholder="https://..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></div>
+                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Promp</label><textarea id="image-prompt" rows="3" placeholder="Masukkan promp..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
-                            <select id="category-select" class="w-full p-3 border border-gray-300 rounded-lg"><option value="">-- Pilih --</option></select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Atau Baru</label>
-                            <input type="text" id="new-category" placeholder="Cth: Anime..." class="w-full p-3 border border-gray-300 rounded-lg">
-                        </div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label><select id="category-select" class="w-full p-3 border border-gray-300 rounded-lg"><option value="">-- Pilih --</option></select></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Atau Baru</label><input type="text" id="new-category" placeholder="Cth: Anime..." class="w-full p-3 border border-gray-300 rounded-lg"></div>
                     </div>
                     <button type="submit" id="submit-button" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400">Hantar untuk Approval</button>
                 </div>
@@ -122,9 +81,7 @@
                 </button>
             </div>
             <div class="flex items-center gap-3 px-4 border-l border-gray-200">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 <input type="range" id="size-slider" min="150" max="600" value="300" class="w-24 sm:w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
             <button id="approve-all-btn" class="hidden bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-sm font-bold flex items-center gap-2 animate-pulse"><span class="text-lg">✓</span> Approve Semua (<span id="approve-all-count">0</span>)</button>
         </div>
@@ -133,42 +90,75 @@
         <div id="gallery-container" class="flex flex-wrap gap-2 px-2 justify-center">
             <p id="loading-message" class="text-gray-500 w-full text-center">Memuatkan...</p>
         </div>
-
     </main>
 
-    <!-- Modal Lihat Penuh -->
+    <!-- Modal Lihat Penuh (Dikemas kini dengan Komen) -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">&lt;</button>
-        <div id="modal-content-wrapper" class="bg-white w-full max-w-4xl max-h-[90vh] h-auto rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
+        
+        <div id="modal-content-wrapper" class="bg-white w-full max-w-5xl max-h-[95vh] h-[90vh] rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
             <button id="close-modal-btn" class="absolute top-2 right-2 z-30 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
-            <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0">
-                <img id="modal-img" src="" class="max-h-[30vh] md:max-h-[85vh] w-auto object-contain rounded-lg">
+            
+            <!-- Bahagian Gambar -->
+            <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0 md:h-full h-1/2 relative">
+                <img id="modal-img" src="" class="max-h-full max-w-full object-contain rounded-lg">
             </div>
-            <div class="w-full md:w-1/2 p-6 flex flex-col bg-white flex-1 min-h-0">
-                <h3 class="text-lg font-bold text-gray-800 mb-2 border-b pb-2 shrink-0">Promp Penuh</h3>
-                <div class="flex-grow overflow-y-auto pr-2 mb-4 custom-scroll overscroll-contain">
-                    <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-gray-50 p-3 rounded border"></p>
-                </div>
+            
+            <!-- Bahagian Maklumat & Komen -->
+            <div class="w-full md:w-1/2 flex flex-col bg-white md:h-full h-1/2 border-l border-gray-200">
                 
-                <div class="mt-auto pt-4 border-t flex flex-col gap-3 shrink-0">
+                <!-- Header Promp -->
+                <div class="p-4 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800 mb-1">Maklumat Promp</h3>
                     <div class="flex justify-between text-xs text-gray-500">
                         <span id="modal-category" class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold"></span>
                         <span id="modal-uploader"></span>
                     </div>
-                    
-                    <!-- Action Buttons Container (BARU: Like & Copy) -->
-                    <div class="flex gap-2">
-                        <!-- Butang Like Modal -->
-                        <button id="modal-like-btn" class="flex-1 bg-gray-100 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200">
+                </div>
+
+                <!-- Scrollable Area: Text & Comments -->
+                <div class="flex-grow overflow-y-auto p-4 custom-scroll bg-gray-50">
+                    <!-- Promp -->
+                    <div class="mb-6">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Promp Penuh</h4>
+                        <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white p-3 rounded border shadow-sm select-text"></p>
+                    </div>
+
+                    <!-- Komen -->
+                    <div>
+                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
+                            Komen (<span id="comment-count">0</span>)
+                        </h4>
+                        <div id="comments-list" class="space-y-3">
+                            <!-- Komen akan dimasukkan di sini oleh JS -->
+                            <p class="text-center text-gray-400 text-sm italic">Tiada komen lagi.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer: Actions & Comment Input -->
+                <div class="p-3 border-t border-gray-200 bg-white shrink-0">
+                    <!-- Buttons -->
+                    <div class="flex gap-2 mb-3">
+                        <button id="modal-like-btn" class="flex-1 bg-gray-50 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200">
                             <svg id="modal-heart-icon" class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                             <span id="modal-like-count">0</span>
                         </button>
-
-                        <!-- Butang Copy Modal -->
                         <button id="modal-copy-btn" class="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                             Salin Promp
                         </button>
+                    </div>
+
+                    <!-- Comment Input -->
+                    <div id="comment-input-area" class="relative">
+                        <input type="text" id="comment-input" placeholder="Tulis komen..." class="w-full p-3 pr-10 bg-gray-100 border-0 rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all" onkeypress="if(event.key==='Enter') window.postComment()">
+                        <button onclick="window.postComment()" class="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800 p-1">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        </button>
+                    </div>
+                    <div id="login-to-comment" class="hidden text-center py-2 bg-gray-50 rounded-lg text-xs text-gray-500">
+                        <a href="#" onclick="document.getElementById('login-btn').click(); document.getElementById('view-modal').click();" class="text-blue-600 underline">Log masuk</a> untuk komen
                     </div>
                 </div>
             </div>
@@ -176,10 +166,9 @@
         <button id="next-modal-btn" class="modal-nav-btn right-2 hidden">&gt;</button>
     </div>
 
-    <!-- Notifikasi Toast (Global) -->
+    <!-- Notifikasi -->
     <div id="notification" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-[200] flex items-center gap-2 transition-all duration-300 transform translate-y-10 opacity-0">
-        <span id="notif-icon">🔔</span>
-        <span id="notif-msg">Mesej</span>
+        <span id="notif-icon">🔔</span> <span id="notif-msg">Mesej</span>
     </div>
 
     <script type="module">
@@ -201,9 +190,8 @@
         let db, auth, galleryRef, categoriesRef;
         let allItems = [], currentUserId = null, isSuperUser = false;
         let currentView = 'gallery', currentCategory = 'all', currentUserIdFilter = null;
-        let modalItems = [];
-        let currentModalIndex = -1;
-        let touchstartX = 0;
+        let modalItems = [], currentModalIndex = -1, touchstartX = 0;
+        let commentsUnsubscribe = null; // Untuk menghentikan listener komen bila modal tutup
 
         const els = {
             loginBtn: document.getElementById('login-btn'),
@@ -228,9 +216,14 @@
             modalCategory: document.getElementById('modal-category'),
             modalUploader: document.getElementById('modal-uploader'),
             modalCopyBtn: document.getElementById('modal-copy-btn'),
-            modalLikeBtn: document.getElementById('modal-like-btn'), // NEW
-            modalHeartIcon: document.getElementById('modal-heart-icon'), // NEW
-            modalLikeCount: document.getElementById('modal-like-count'), // NEW
+            modalLikeBtn: document.getElementById('modal-like-btn'),
+            modalHeartIcon: document.getElementById('modal-heart-icon'),
+            modalLikeCount: document.getElementById('modal-like-count'),
+            commentsList: document.getElementById('comments-list'), // NEW
+            commentCount: document.getElementById('comment-count'), // NEW
+            commentInput: document.getElementById('comment-input'), // NEW
+            commentInputArea: document.getElementById('comment-input-area'), // NEW
+            loginToComment: document.getElementById('login-to-comment'), // NEW
             closeModalBtn: document.getElementById('close-modal-btn'),
             prevBtn: document.getElementById('prev-modal-btn'),
             nextBtn: document.getElementById('next-modal-btn'),
@@ -239,21 +232,84 @@
             notif: document.getElementById('notification'),
             notifMsg: document.getElementById('notif-msg'),
             notifIcon: document.getElementById('notif-icon'),
-            navs: {
-                gallery: document.getElementById('nav-gallery'),
-                liked: document.getElementById('nav-liked'),
-                myprompt: document.getElementById('nav-myprompt'),
-                pending: document.getElementById('nav-pending'),
-                request: document.getElementById('nav-request')
-            },
-            counts: {
-                pending: document.getElementById('pending-count-user'),
-                request: document.getElementById('request-count-admin')
-            }
+            navs: { gallery: document.getElementById('nav-gallery'), liked: document.getElementById('nav-liked'), myprompt: document.getElementById('nav-myprompt'), pending: document.getElementById('nav-pending'), request: document.getElementById('nav-request') },
+            counts: { pending: document.getElementById('pending-count-user'), request: document.getElementById('request-count-admin') }
         };
 
         els.sizeSlider.addEventListener('input', (e) => document.documentElement.style.setProperty('--img-height', `${e.target.value}px`));
 
+        // --- COMMENT FUNCTIONS ---
+        function listenToComments(itemId) {
+            if (commentsUnsubscribe) commentsUnsubscribe(); // Hentikan listener lama
+            
+            const commentsRef = collection(db, `${galleryRef.path}/${itemId}/comments`);
+            const q = query(commentsRef, orderBy('timestamp', 'asc'));
+
+            commentsUnsubscribe = onSnapshot(q, (snapshot) => {
+                els.commentsList.innerHTML = '';
+                els.commentCount.textContent = snapshot.size;
+
+                if (snapshot.empty) {
+                    els.commentsList.innerHTML = '<p class="text-center text-gray-400 text-sm italic py-4">Tiada komen lagi. Jadilah yang pertama!</p>';
+                    return;
+                }
+
+                snapshot.forEach(doc => {
+                    const c = doc.data();
+                    const isMyComment = currentUserId && c.userId === currentUserId;
+                    const timeAgo = dayjs(c.timestamp).fromNow();
+                    
+                    const div = document.createElement('div');
+                    div.className = 'bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="font-bold text-gray-700 text-xs">${c.userName || 'User'}</span>
+                            <span class="text-[10px] text-gray-400">${timeAgo}</span>
+                        </div>
+                        <p class="text-gray-600 leading-snug">${c.text}</p>
+                    `;
+                    els.commentsList.appendChild(div);
+                    // Auto scroll ke bawah untuk komen baru
+                    els.commentsList.parentElement.scrollTop = els.commentsList.parentElement.scrollHeight;
+                });
+            });
+        }
+
+        window.postComment = async () => {
+            const text = els.commentInput.value.trim();
+            if (!text) return;
+            if (!currentUserId) return notify("Sila log masuk.", 'error');
+
+            const item = modalItems[currentModalIndex];
+            if (!item) return;
+
+            const user = auth.currentUser;
+            const commentData = {
+                text: text,
+                userId: currentUserId,
+                userName: (user.displayName || 'User').split(' ')[0],
+                timestamp: Date.now()
+            };
+
+            try {
+                els.commentInput.value = ''; // Clear input segera
+                const commentsRef = collection(db, `${galleryRef.path}/${item.id}/comments`);
+                await addDoc(commentsRef, commentData);
+                
+                // Hantar notifikasi kepada pemilik gambar (jika bukan diri sendiri)
+                if (item.userId && item.userId !== currentUserId) {
+                    const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${item.userId}/notifications`);
+                    addDoc(notifRef, {
+                        type: 'comment', fromName: commentData.userName, itemId: item.id, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false
+                    }).catch(console.error);
+                }
+            } catch (err) {
+                console.error("Error post comment:", err);
+                notify("Gagal menghantar komen.", 'error');
+            }
+        };
+
+        // --- OTHER FUNCTIONS (Kekal Sama) ---
         window.filterByCategory = (cat) => {
             currentCategory = cat;
             Array.from(els.catTabs.children).forEach(btn => {
@@ -266,59 +322,43 @@
 
         window.filterByUser = (uid, name) => { currentUserIdFilter = uid; els.userFilterName.textContent = name || 'User'; els.userFilterChip.classList.remove('hidden'); renderGallery(); };
         window.clearUserFilter = () => { currentUserIdFilter = null; els.userFilterChip.classList.add('hidden'); renderGallery(); };
-
+        
         function switchView(viewName) {
             currentView = viewName;
             Object.values(els.navs).forEach(btn => btn.classList.remove('active'));
             if(els.navs[viewName]) els.navs[viewName].classList.add('active');
-
-            if (viewName === 'gallery') els.viewTitle.textContent = "Galeri Awam";
-            else if (viewName === 'liked') els.viewTitle.textContent = "Promp Yang Saya Like ❤️";
-            else if (viewName === 'myprompt') els.viewTitle.textContent = "Koleksi Saya";
-            else if (viewName === 'pending') els.viewTitle.textContent = "Pending Approval";
-            else if (viewName === 'request') els.viewTitle.textContent = "Permintaan Approval (Admin)";
-
+            
+            const titles = { gallery: "Galeri Awam", liked: "Promp Yang Saya Like ❤️", myprompt: "Koleksi Saya", pending: "Pending Approval", request: "Permintaan Approval (Admin)" };
+            els.viewTitle.textContent = titles[viewName];
             if (viewName === 'request' && isSuperUser) els.approveAllBtn.classList.remove('hidden'); else els.approveAllBtn.classList.add('hidden');
             renderGallery();
         }
 
-        // --- LIKE & NOTIFICATION LOGIC ---
         window.toggleLike = async (itemId, ownerId) => {
             if (!currentUserId) return notify("Sila log masuk untuk like.", 'error');
-            
             const item = allItems.find(i => i.id === itemId);
             if(!item) return;
-            
             const isLiked = item.likes && item.likes.includes(currentUserId);
             const itemRef = doc(db, galleryRef.path, itemId);
-
             try {
-                if (isLiked) {
-                    await updateDoc(itemRef, { likes: arrayRemove(currentUserId) });
-                } else {
+                if (isLiked) await updateDoc(itemRef, { likes: arrayRemove(currentUserId) });
+                else {
                     await updateDoc(itemRef, { likes: arrayUnion(currentUserId) });
                     notify("Liked!", 'success');
                     if (ownerId && ownerId !== currentUserId) {
                         const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${ownerId}/notifications`);
                         const user = auth.currentUser;
-                        addDoc(notifRef, {
-                            type: 'like', fromName: user.displayName || 'Seseorang', itemId: itemId, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false
-                        }).catch(e => console.error("Fail notif", e));
+                        addDoc(notifRef, { type: 'like', fromName: user.displayName || 'Seseorang', itemId: itemId, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error);
                     }
                 }
-            } catch (err) {
-                console.error("Error like:", err); notify("Gagal like. Periksa sambungan.", 'error');
-            }
+            } catch (err) { console.error(err); notify("Gagal like.", 'error'); }
         };
 
         function renderGallery() {
             let filtered = allItems.filter(item => {
                 const itemCat = item.category || 'Umum';
-                const catMatch = currentCategory === 'all' || itemCat === currentCategory;
-                const userMatch = !currentUserIdFilter || item.userId === currentUserIdFilter;
-                return catMatch && userMatch;
+                return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter);
             });
-            
             let itemsToShow = [];
             if (currentView === 'gallery') itemsToShow = filtered.filter(item => item.status === 'approved' || !item.status);
             else if (currentView === 'liked') itemsToShow = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId));
@@ -328,23 +368,15 @@
             
             if(currentView === 'request') els.approveAllCount.textContent = itemsToShow.length;
             els.gallery.innerHTML = '';
-
-            if (itemsToShow.length === 0) {
-                els.gallery.innerHTML = `<p class="text-gray-500 w-full text-center py-10">Tiada item dijumpai.</p>`;
-                return;
-            }
+            if (itemsToShow.length === 0) { els.gallery.innerHTML = `<p class="text-gray-500 w-full text-center py-10">Tiada item dijumpai.</p>`; return; }
 
             itemsToShow.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative flex-grow hover:shadow-xl transition-shadow select-none overflow-hidden';
-                
                 const isOwner = currentUserId && item.userId === currentUserId;
-                const status = item.status || 'approved';
-                const isPending = status === 'pending';
+                const isPending = item.status === 'pending';
                 const canDelete = isOwner || isSuperUser;
-                
                 const likes = item.likes || [];
-                const likeCount = likes.length;
                 const isLikedByMe = currentUserId && likes.includes(currentUserId);
                 const heartColor = isLikedByMe ? 'text-red-500' : 'text-white';
                 const heartFill = isLikedByMe ? 'currentColor' : 'none';
@@ -368,7 +400,7 @@
                             <div class="pointer-events-auto">
                                 <button onclick="event.stopPropagation(); window.toggleLike('${item.id}', '${item.userId}'); this.firstElementChild.classList.add('like-anim'); setTimeout(()=>this.firstElementChild.classList.remove('like-anim'),400);" class="flex items-center gap-1 text-white hover:scale-110 transition-transform bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm">
                                     <svg class="w-5 h-5 ${heartColor} transition-colors duration-300" fill="${heartFill}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                                    <span class="text-xs font-bold">${likeCount}</span>
+                                    <span class="text-xs font-bold">${likes.length}</span>
                                 </button>
                             </div>
                             <p class="text-sm text-white line-clamp-1 font-medium text-right flex-1 opacity-90">${item.prompt}</p>
@@ -384,35 +416,25 @@
             if (index < 0 || index >= modalItems.length) return;
             const item = modalItems[index]; currentModalIndex = index;
             
-            // Info Asas
             els.modalImg.src = item.imageUrl; els.modalPrompt.textContent = item.prompt;
             els.modalCategory.textContent = item.category || 'Umum'; els.modalUploader.textContent = `Uploaded by: ${item.userName || 'User'}`;
             
-            // Copy Button
             els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt);
             
-            // Like Button State
             const likes = item.likes || [];
             const isLikedByMe = currentUserId && likes.includes(currentUserId);
             els.modalLikeCount.textContent = likes.length;
-            
-            // Update Like Icon Style
             if (isLikedByMe) {
-                els.modalHeartIcon.classList.add('text-red-500', 'fill-current');
-                els.modalHeartIcon.classList.remove('text-gray-500', 'fill-none');
+                els.modalHeartIcon.classList.add('text-red-500', 'fill-current'); els.modalHeartIcon.classList.remove('text-gray-500', 'fill-none');
                 els.modalLikeBtn.classList.add('bg-pink-50', 'border-pink-200');
             } else {
-                els.modalHeartIcon.classList.add('text-gray-500', 'fill-none');
-                els.modalHeartIcon.classList.remove('text-red-500', 'fill-current');
+                els.modalHeartIcon.classList.add('text-gray-500', 'fill-none'); els.modalHeartIcon.classList.remove('text-red-500', 'fill-current');
                 els.modalLikeBtn.classList.remove('bg-pink-50', 'border-pink-200');
             }
-            
-            // Like Button Action
-            els.modalLikeBtn.onclick = () => {
-                els.modalHeartIcon.classList.add('like-anim');
-                setTimeout(()=>els.modalHeartIcon.classList.remove('like-anim'), 400);
-                window.toggleLike(item.id, item.userId);
-            };
+            els.modalLikeBtn.onclick = () => { els.modalHeartIcon.classList.add('like-anim'); setTimeout(()=>els.modalHeartIcon.classList.remove('like-anim'), 400); window.toggleLike(item.id, item.userId); };
+
+            // START LISTENING TO COMMENTS
+            listenToComments(item.id);
 
             els.prevBtn.classList.toggle('hidden', currentModalIndex === 0); els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1);
         }
@@ -432,9 +454,15 @@
             if (initialIndex === -1) return;
             updateModalContent(initialIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden';
         };
-        window.closeModal = () => { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; };
+
+        window.closeModal = () => { 
+            els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; 
+            if(commentsUnsubscribe) commentsUnsubscribe(); // Stop listening
+        };
+        
         window.showPrevItem = () => { if (currentModalIndex > 0) updateModalContent(currentModalIndex - 1); };
         window.showNextItem = () => { if (currentModalIndex < modalItems.length - 1) updateModalContent(currentModalIndex + 1); };
+        
         els.modalImageArea.addEventListener('touchstart', (e) => { touchstartX = e.changedTouches[0].screenX; }, false);
         els.modalImageArea.addEventListener('touchend', (e) => { if (Math.abs(e.changedTouches[0].screenX - touchstartX) > 50) e.changedTouches[0].screenX < touchstartX ? window.showNextItem() : window.showPrevItem(); touchstartX = 0; }, false);
         
@@ -458,7 +486,8 @@
                     if (change.type === 'added') {
                         const data = change.doc.data();
                         if (!data.read && Date.now() - data.timestamp < 10000) {
-                            notify(`❤️ ${data.fromName} menyukai promp: "${data.promptSnippet}"`, 'success');
+                            const msg = data.type === 'like' ? `❤️ ${data.fromName} menyukai promp anda` : `💬 ${data.fromName} mengomen promp anda`;
+                            notify(msg, 'success');
                             await deleteDoc(change.doc.ref); 
                         }
                     }
@@ -483,18 +512,12 @@
                 snap.forEach(d => allItems.push({id: d.id, ...d.data()})); 
                 allItems.sort((a, b) => b.timestamp - a.timestamp); 
                 updateCounts(); 
-                renderGallery(); 
-                
-                // KEMAS KINI MODAL JIKA SEDANG DIBUKA (REAL-TIME)
+                renderGallery();
                 if (!els.modal.classList.contains('hidden') && currentModalIndex !== -1) {
-                    // Cari item terkini berdasarkan ID item yang sedang dipaparkan
                     const currentItem = modalItems[currentModalIndex];
                     if(currentItem) {
                         const updatedItem = allItems.find(i => i.id === currentItem.id);
-                        if(updatedItem) {
-                            modalItems[currentModalIndex] = updatedItem; // Update data dalam array modal
-                            updateModalContent(currentModalIndex); // Render semula kandungan modal
-                        }
+                        if(updatedItem) { modalItems[currentModalIndex] = updatedItem; updateModalContent(currentModalIndex); }
                     }
                 }
             });
@@ -503,10 +526,12 @@
                     currentUserId = user.uid; isSuperUser = user.email === SUPER_USER_EMAIL;
                     els.userWelcome.textContent = `Hi, ${user.displayName?.split(' ')[0]}`; els.userWelcome.classList.remove('hidden'); els.loginBtn.classList.add('hidden'); els.userControls.classList.remove('hidden');
                     els.navs.myprompt.classList.remove('hidden'); els.navs.pending.classList.remove('hidden');
+                    els.commentInputArea.classList.remove('hidden'); els.loginToComment.classList.add('hidden');
                     if(isSuperUser) { els.navs.request.classList.remove('hidden'); els.navs.pending.classList.add('hidden'); } else els.navs.request.classList.add('hidden');
                     listenToNotifications(user.uid); 
                 } else {
                     currentUserId = null; isSuperUser = false; els.userWelcome.classList.add('hidden'); els.loginBtn.classList.remove('hidden'); els.userControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden');
+                    els.commentInputArea.classList.add('hidden'); els.loginToComment.classList.remove('hidden');
                     switchView('gallery');
                 }
                 renderGallery();
@@ -514,19 +539,14 @@
         }
 
         function updateCounts() {
-            if(currentUserId){
-                 const pendingUser = allItems.filter(i => i.userId === currentUserId && i.status === 'pending').length;
-                 if(pendingUser > 0) { els.counts.pending.textContent = pendingUser; els.counts.pending.classList.remove('hidden'); } else els.counts.pending.classList.add('hidden');
-            }
-            const pendingAll = allItems.filter(i => i.status === 'pending').length;
-            if(pendingAll > 0) { els.counts.request.textContent = pendingAll; els.counts.request.classList.remove('hidden'); } else els.counts.request.classList.add('hidden');
+            if(currentUserId){ const pendingUser = allItems.filter(i => i.userId === currentUserId && i.status === 'pending').length; if(pendingUser > 0) { els.counts.pending.textContent = pendingUser; els.counts.pending.classList.remove('hidden'); } else els.counts.pending.classList.add('hidden'); }
+            const pendingAll = allItems.filter(i => i.status === 'pending').length; if(pendingAll > 0) { els.counts.request.textContent = pendingAll; els.counts.request.classList.remove('hidden'); } else els.counts.request.classList.add('hidden');
         }
 
         function notify(msg, type='success') {
-            els.notifMsg.textContent = msg; els.notifIcon.textContent = type==='error'?'⚠️':'🔔';
+            els.notifMsg.textContent = msg; els.notifIcon.textContent = type==='error'?'⚠️':(msg.includes('komen')?'💬':'🔔');
             els.notif.className = `fixed bottom-5 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-[200] flex items-center gap-2 transition-all duration-300 transform translate-y-0 opacity-100 ${type === 'error' ? 'bg-red-600' : 'bg-gray-800'} text-white`;
-            els.notif.classList.remove('hidden');
-            setTimeout(() => { els.notif.classList.add('translate-y-10', 'opacity-0'); setTimeout(()=>els.notif.classList.add('hidden'), 300); }, 3000);
+            els.notif.classList.remove('hidden'); setTimeout(() => { els.notif.classList.add('translate-y-10', 'opacity-0'); setTimeout(()=>els.notif.classList.add('hidden'), 300); }, 3000);
         }
 
         function copyToClipboard(text) {
