@@ -67,7 +67,6 @@
                 <div id="user-controls" class="hidden flex flex-wrap justify-center sm:justify-end items-center gap-2">
                     <div class="flex items-center gap-2 mr-2">
                         <button id="nav-gallery" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Semua Gambar Approved">Galeri</button>
-                        <!-- TAB LIKED (BARU) -->
                         <button id="nav-liked" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Gambar yang saya like">Liked ❤️</button>
                         <button id="nav-myprompt" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Gambar Saya">My Prompt</button>
                         <button id="nav-pending" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden" title="Menunggu Approval">
@@ -150,15 +149,27 @@
                 <div class="flex-grow overflow-y-auto pr-2 mb-4 custom-scroll overscroll-contain">
                     <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-gray-50 p-3 rounded border"></p>
                 </div>
+                
                 <div class="mt-auto pt-4 border-t flex flex-col gap-3 shrink-0">
                     <div class="flex justify-between text-xs text-gray-500">
                         <span id="modal-category" class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold"></span>
                         <span id="modal-uploader"></span>
                     </div>
-                    <button id="modal-copy-btn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-                        Salin Promp
-                    </button>
+                    
+                    <!-- Action Buttons Container (BARU: Like & Copy) -->
+                    <div class="flex gap-2">
+                        <!-- Butang Like Modal -->
+                        <button id="modal-like-btn" class="flex-1 bg-gray-100 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200">
+                            <svg id="modal-heart-icon" class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                            <span id="modal-like-count">0</span>
+                        </button>
+
+                        <!-- Butang Copy Modal -->
+                        <button id="modal-copy-btn" class="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            Salin Promp
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -217,6 +228,9 @@
             modalCategory: document.getElementById('modal-category'),
             modalUploader: document.getElementById('modal-uploader'),
             modalCopyBtn: document.getElementById('modal-copy-btn'),
+            modalLikeBtn: document.getElementById('modal-like-btn'), // NEW
+            modalHeartIcon: document.getElementById('modal-heart-icon'), // NEW
+            modalLikeCount: document.getElementById('modal-like-count'), // NEW
             closeModalBtn: document.getElementById('close-modal-btn'),
             prevBtn: document.getElementById('prev-modal-btn'),
             nextBtn: document.getElementById('next-modal-btn'),
@@ -227,7 +241,7 @@
             notifIcon: document.getElementById('notif-icon'),
             navs: {
                 gallery: document.getElementById('nav-gallery'),
-                liked: document.getElementById('nav-liked'), // TAB BARU
+                liked: document.getElementById('nav-liked'),
                 myprompt: document.getElementById('nav-myprompt'),
                 pending: document.getElementById('nav-pending'),
                 request: document.getElementById('nav-request')
@@ -280,30 +294,20 @@
 
             try {
                 if (isLiked) {
-                    // Unlike
                     await updateDoc(itemRef, { likes: arrayRemove(currentUserId) });
                 } else {
-                    // Like
                     await updateDoc(itemRef, { likes: arrayUnion(currentUserId) });
                     notify("Liked!", 'success');
-                    
-                    // Hantar notifikasi kepada pemilik (jika bukan diri sendiri)
                     if (ownerId && ownerId !== currentUserId) {
                         const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${ownerId}/notifications`);
                         const user = auth.currentUser;
                         addDoc(notifRef, {
-                            type: 'like',
-                            fromName: user.displayName || 'Seseorang',
-                            itemId: itemId,
-                            promptSnippet: item.prompt.substring(0, 20) + '...',
-                            timestamp: Date.now(),
-                            read: false
+                            type: 'like', fromName: user.displayName || 'Seseorang', itemId: itemId, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false
                         }).catch(e => console.error("Fail notif", e));
                     }
                 }
             } catch (err) {
-                console.error("Error like:", err);
-                notify("Gagal like. Periksa sambungan.", 'error');
+                console.error("Error like:", err); notify("Gagal like. Periksa sambungan.", 'error');
             }
         };
 
@@ -317,7 +321,7 @@
             
             let itemsToShow = [];
             if (currentView === 'gallery') itemsToShow = filtered.filter(item => item.status === 'approved' || !item.status);
-            else if (currentView === 'liked') itemsToShow = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId)); // LOGIK TAB LIKED
+            else if (currentView === 'liked') itemsToShow = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId));
             else if (currentView === 'myprompt') itemsToShow = filtered.filter(item => item.userId === currentUserId);
             else if (currentView === 'pending') itemsToShow = filtered.filter(item => item.userId === currentUserId && item.status === 'pending');
             else if (currentView === 'request') itemsToShow = filtered.filter(item => item.status === 'pending');
@@ -339,7 +343,6 @@
                 const isPending = status === 'pending';
                 const canDelete = isOwner || isSuperUser;
                 
-                // Like Logic
                 const likes = item.likes || [];
                 const likeCount = likes.length;
                 const isLikedByMe = currentUserId && likes.includes(currentUserId);
@@ -360,20 +363,14 @@
                             <span onclick="event.stopPropagation(); window.filterByUser('${item.userId}', '${item.userName || 'User'}')" class="text-[10px] text-white/90 truncate cursor-pointer hover:text-purple-300 hover:underline">By: ${item.userName || 'User'}</span>
                         </div>
                         ${deleteBtn} ${approveBtn} ${statusBadge} ${viewBtn}
-                        
                         <img src="${item.imageUrl}" class="dynamic-img w-auto min-w-full object-cover block transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=Error'">
-                        
-                        <!-- Footer Floating: Like (Kiri) & Promp (Kanan) -->
                         <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent pointer-events-none z-10 flex items-end justify-between gap-2">
-                            <!-- Like Button (Clickable) -->
                             <div class="pointer-events-auto">
                                 <button onclick="event.stopPropagation(); window.toggleLike('${item.id}', '${item.userId}'); this.firstElementChild.classList.add('like-anim'); setTimeout(()=>this.firstElementChild.classList.remove('like-anim'),400);" class="flex items-center gap-1 text-white hover:scale-110 transition-transform bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm">
                                     <svg class="w-5 h-5 ${heartColor} transition-colors duration-300" fill="${heartFill}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                                     <span class="text-xs font-bold">${likeCount}</span>
                                 </button>
                             </div>
-                            
-                            <!-- Prompt Text -->
                             <p class="text-sm text-white line-clamp-1 font-medium text-right flex-1 opacity-90">${item.prompt}</p>
                         </div>
                     </div>
@@ -386,9 +383,37 @@
         function updateModalContent(index) {
             if (index < 0 || index >= modalItems.length) return;
             const item = modalItems[index]; currentModalIndex = index;
+            
+            // Info Asas
             els.modalImg.src = item.imageUrl; els.modalPrompt.textContent = item.prompt;
             els.modalCategory.textContent = item.category || 'Umum'; els.modalUploader.textContent = `Uploaded by: ${item.userName || 'User'}`;
+            
+            // Copy Button
             els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt);
+            
+            // Like Button State
+            const likes = item.likes || [];
+            const isLikedByMe = currentUserId && likes.includes(currentUserId);
+            els.modalLikeCount.textContent = likes.length;
+            
+            // Update Like Icon Style
+            if (isLikedByMe) {
+                els.modalHeartIcon.classList.add('text-red-500', 'fill-current');
+                els.modalHeartIcon.classList.remove('text-gray-500', 'fill-none');
+                els.modalLikeBtn.classList.add('bg-pink-50', 'border-pink-200');
+            } else {
+                els.modalHeartIcon.classList.add('text-gray-500', 'fill-none');
+                els.modalHeartIcon.classList.remove('text-red-500', 'fill-current');
+                els.modalLikeBtn.classList.remove('bg-pink-50', 'border-pink-200');
+            }
+            
+            // Like Button Action
+            els.modalLikeBtn.onclick = () => {
+                els.modalHeartIcon.classList.add('like-anim');
+                setTimeout(()=>els.modalHeartIcon.classList.remove('like-anim'), 400);
+                window.toggleLike(item.id, item.userId);
+            };
+
             els.prevBtn.classList.toggle('hidden', currentModalIndex === 0); els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1);
         }
 
@@ -425,20 +450,15 @@
         window.approveItem = async (id) => { try { await updateDoc(doc(db, galleryRef.path, id), { status: 'approved' }); notify("Item diluluskan!"); } catch(err) { notify("Gagal approve.", 'error'); } };
         window.approveAll = async () => { if(!confirm("Luluskan semua?")) return; const batch = writeBatch(db); allItems.filter(i => i.status === 'pending').forEach(i => batch.update(doc(db, galleryRef.path, i.id), { status: 'approved' })); try { await batch.commit(); notify("Semua diluluskan!"); } catch(err) { notify("Gagal.", 'error'); } };
 
-        // --- LISTEN FOR NOTIFICATIONS ---
         function listenToNotifications(uid) {
             const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${uid}/notifications`);
-            // Dengar notifikasi yang belum dibaca, susun ikut masa terkini
             const q = query(notifRef, orderBy('timestamp', 'desc')); 
-            
             onSnapshot(q, (snap) => {
                 snap.docChanges().forEach(async (change) => {
                     if (change.type === 'added') {
                         const data = change.doc.data();
-                        // Hanya tunjuk jika notifikasi baru (kurang dari 10 saat lepas) untuk elak spam masa load
                         if (!data.read && Date.now() - data.timestamp < 10000) {
                             notify(`❤️ ${data.fromName} menyukai promp: "${data.promptSnippet}"`, 'success');
-                            // Tandakan sebagai dibaca (atau padam terus)
                             await deleteDoc(change.doc.ref); 
                         }
                     }
@@ -458,14 +478,33 @@
                     btn.onclick = () => window.filterByCategory(cat); els.catTabs.appendChild(btn); if(cat !== 'all') els.catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
                 });
             });
-            onSnapshot(query(galleryRef), snap => { allItems = []; snap.forEach(d => allItems.push({id: d.id, ...d.data()})); allItems.sort((a, b) => b.timestamp - a.timestamp); updateCounts(); renderGallery(); });
+            onSnapshot(query(galleryRef), snap => { 
+                allItems = []; 
+                snap.forEach(d => allItems.push({id: d.id, ...d.data()})); 
+                allItems.sort((a, b) => b.timestamp - a.timestamp); 
+                updateCounts(); 
+                renderGallery(); 
+                
+                // KEMAS KINI MODAL JIKA SEDANG DIBUKA (REAL-TIME)
+                if (!els.modal.classList.contains('hidden') && currentModalIndex !== -1) {
+                    // Cari item terkini berdasarkan ID item yang sedang dipaparkan
+                    const currentItem = modalItems[currentModalIndex];
+                    if(currentItem) {
+                        const updatedItem = allItems.find(i => i.id === currentItem.id);
+                        if(updatedItem) {
+                            modalItems[currentModalIndex] = updatedItem; // Update data dalam array modal
+                            updateModalContent(currentModalIndex); // Render semula kandungan modal
+                        }
+                    }
+                }
+            });
             onAuthStateChanged(auth, user => {
                 if (user) {
                     currentUserId = user.uid; isSuperUser = user.email === SUPER_USER_EMAIL;
                     els.userWelcome.textContent = `Hi, ${user.displayName?.split(' ')[0]}`; els.userWelcome.classList.remove('hidden'); els.loginBtn.classList.add('hidden'); els.userControls.classList.remove('hidden');
                     els.navs.myprompt.classList.remove('hidden'); els.navs.pending.classList.remove('hidden');
                     if(isSuperUser) { els.navs.request.classList.remove('hidden'); els.navs.pending.classList.add('hidden'); } else els.navs.request.classList.add('hidden');
-                    listenToNotifications(user.uid); // MULA DENGAR NOTIFIKASI
+                    listenToNotifications(user.uid); 
                 } else {
                     currentUserId = null; isSuperUser = false; els.userWelcome.classList.add('hidden'); els.loginBtn.classList.remove('hidden'); els.userControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden');
                     switchView('gallery');
