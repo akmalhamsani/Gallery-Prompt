@@ -3,25 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Promp (Mobile UI)</title>
+    <title>Galeri Promp (Mobile Slide Menu)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
     <script>dayjs.extend(window.dayjs_plugin_relativeTime);</script>
     <style>
-        body { font-family: "Inter", sans-serif; }
+        body { font-family: "Inter", sans-serif; overflow-x: hidden; }
         .gallery-item .delete-btn, .gallery-item .approve-btn, .gallery-item .view-btn { opacity: 0; transition: opacity 0.2s ease-in-out; }
         .gallery-item:hover .delete-btn, .gallery-item:hover .approve-btn, .gallery-item:hover .view-btn { opacity: 1; }
         @media (hover: none) { .gallery-item .view-btn { opacity: 1; } }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* Butang Navigasi Desktop */
         .nav-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .nav-btn { background-color: white; color: #4b5563; border: 1px solid #d1d5db; }
         
-        /* Butang Navigasi Mobile */
-        .mobile-nav-btn { @apply w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-semibold transition-colors; }
+        /* Style Sidebar Mobile */
+        .mobile-nav-btn { @apply w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-semibold transition-colors flex items-center gap-3 border-b border-gray-50; }
         
         :root { --img-height: 300px; }
         .dynamic-img { height: var(--img-height); transition: height 0.1s ease-out; }
@@ -30,150 +29,182 @@
         .like-anim { animation: heart-beat 0.4s ease-in-out; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-6 md:p-10">
+<body class="bg-gray-100 min-h-screen">
 
-    <main class="max-w-full mx-auto">
-        <!-- Header -->
-        <div class="flex flex-row justify-between items-center mb-8 gap-4 px-4 relative">
-            <!-- Logo -->
-            <div class="flex items-center gap-3 cursor-pointer" onclick="window.switchView('gallery')">
-                <img src="https://akmalhamsani.github.io/Gallery-Prompt/logo.png" alt="Logo" class="w-10 h-10 object-contain">
-                <div>
-                    <h1 class="text-2xl md:text-4xl font-bold text-center sm:text-left text-gray-800">Galeri Promp</h1>
-                    <p id="user-welcome" class="text-gray-600 text-xs md:text-sm hidden mt-1"></p>
-                </div>
-            </div>
-
-            <!-- DESKTOP NAVIGATION (Hidden on Mobile) -->
-            <div id="desktop-controls" class="hidden md:flex flex-col items-end gap-2">
-                <button id="login-btn" class="w-auto bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">Log Masuk</button>
-                <div id="user-controls" class="hidden flex flex-wrap justify-end items-center gap-2">
-                    <div class="flex items-center gap-2 mr-2">
-                        <button id="nav-gallery" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Galeri</button>
-                        <button id="nav-liked" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Liked ❤️</button>
-                        <button id="nav-myprofile" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Profil Saya</button>
-                        <button id="nav-myprompt" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">My Prompt</button>
-                        <button id="nav-pending" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">Pending <span id="pending-count-user" class="ml-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
-                        <button id="nav-request" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden border-yellow-500 text-yellow-700">Requested <span id="request-count-admin" class="ml-1 bg-red-600 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
-                    </div>
-                    <div class="h-8 w-px bg-gray-300 mx-1"></div>
-                    <button id="toggle-form-btn" class="w-10 h-10 rounded-full bg-green-600 text-white text-2xl font-bold flex items-center justify-center hover:bg-green-700 transition-colors duration-200 shadow-sm" title="Tambah">+</button>
-                    <button id="logout-btn" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">Log Keluar</button>
-                </div>
-            </div>
-
-            <!-- MOBILE MENU BUTTON (Visible on Mobile Only) -->
-            <div class="md:hidden flex items-center gap-3">
-                <!-- Butang Tambah Mobile (Sentiasa nampak jika login) -->
-                <button id="mobile-add-btn" class="hidden w-10 h-10 rounded-full bg-green-600 text-white text-2xl font-bold flex items-center justify-center shadow-sm">+</button>
-                
-                <!-- Hamburger Button -->
-                <button id="mobile-menu-toggle" class="text-gray-700 hover:text-blue-600 focus:outline-none p-2">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                </button>
-            </div>
-
-            <!-- MOBILE DROPDOWN MENU (Hidden by default) -->
-            <div id="mobile-menu" class="hidden absolute top-20 right-4 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 flex flex-col p-2 animate-fade-in origin-top-right">
-                
-                <!-- Menu Items (Akan di-toggle oleh JS berdasarkan Auth) -->
-                <div id="mobile-auth-section" class="border-b border-gray-100 mb-2 pb-2">
-                    <button id="mobile-login-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-center">Log Masuk Google</button>
-                    <div id="mobile-user-info" class="hidden px-2">
-                        <p id="mobile-username" class="font-bold text-gray-800 truncate">User</p>
-                        <button id="mobile-logout-btn" class="text-red-500 text-xs font-semibold mt-1">Log Keluar</button>
+    <!-- Wrapper Utama -->
+    <div id="app-wrapper" class="min-h-screen p-6 md:p-10 transition-transform duration-300 ease-in-out">
+        <main class="max-w-full mx-auto">
+            <!-- Header -->
+            <div class="flex flex-row justify-between items-center mb-8 gap-4 px-4 relative">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="window.switchView('gallery')">
+                    <img src="https://akmalhamsani.github.io/Gallery-Prompt/logo.png" alt="Logo" class="w-10 h-10 object-contain">
+                    <div>
+                        <h1 class="text-2xl md:text-4xl font-bold text-center sm:text-left text-gray-800">Galeri Promp</h1>
+                        <p id="user-welcome" class="text-gray-600 text-xs md:text-sm hidden mt-1"></p>
                     </div>
                 </div>
 
-                <button onclick="window.switchView('gallery'); window.toggleMobileMenu()" class="mobile-nav-btn">🏠 Galeri Awam</button>
-                
-                <!-- Item untuk User Login Sahaja -->
-                <div id="mobile-user-links" class="hidden flex flex-col w-full">
-                    <button onclick="window.showUserProfile(currentUserId); window.toggleMobileMenu()" class="mobile-nav-btn">👤 Profil Saya</button>
-                    <button onclick="window.switchView('liked'); window.toggleMobileMenu()" class="mobile-nav-btn">❤️ Liked</button>
-                    <button onclick="window.switchView('pending'); window.toggleMobileMenu()" class="mobile-nav-btn">⏳ Pending <span id="mobile-pending-count" class="bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
-                    <!-- Admin Only -->
-                    <button id="mobile-nav-request" onclick="window.switchView('request'); window.toggleMobileMenu()" class="mobile-nav-btn hidden text-yellow-600">🛡️ Requested <span id="mobile-request-count" class="bg-red-600 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
+                <!-- DESKTOP NAVIGATION -->
+                <div id="desktop-controls" class="hidden md:flex flex-col items-end gap-2">
+                    <button id="login-btn" class="w-auto bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">Log Masuk</button>
+                    <div id="user-controls" class="hidden flex flex-wrap justify-end items-center gap-2">
+                        <div class="flex items-center gap-2 mr-2">
+                            <button id="nav-gallery" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Galeri</button>
+                            <button id="nav-liked" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Liked ❤️</button>
+                            <button id="nav-myprofile" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Profil Saya</button>
+                            <button id="nav-myprompt" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">My Prompt</button>
+                            <button id="nav-pending" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">Pending <span id="pending-count-user" class="ml-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
+                            <button id="nav-request" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden border-yellow-500 text-yellow-700">Requested <span id="request-count-admin" class="ml-1 bg-red-600 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
+                        </div>
+                        <div class="h-8 w-px bg-gray-300 mx-1"></div>
+                        <button id="toggle-form-btn" class="w-10 h-10 rounded-full bg-green-600 text-white text-2xl font-bold flex items-center justify-center hover:bg-green-700 transition-colors duration-200 shadow-sm" title="Tambah">+</button>
+                        <button id="logout-btn" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">Log Keluar</button>
+                    </div>
+                </div>
+
+                <!-- MOBILE MENU BUTTON -->
+                <div class="md:hidden flex items-center gap-3">
+                    <button id="mobile-add-btn" class="hidden w-10 h-10 rounded-full bg-green-600 text-white text-2xl font-bold flex items-center justify-center shadow-sm transform active:scale-90 transition-transform">+</button>
+                    <button id="mobile-menu-toggle" onclick="window.toggleMobileMenu()" class="text-gray-700 hover:text-blue-600 focus:outline-none p-2 z-40">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
                 </div>
             </div>
-        </div>
 
-        <!-- Borang Tambah -->
-        <div id="add-form-container" class="hidden mb-10 px-4">
-            <form id="add-form" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto border-l-4 border-green-500">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800">Tambah Promp Baru</h2>
-                    <button type="button" onclick="window.toggleAddForm()" class="text-gray-400 hover:text-red-500 text-xl">&times;</button>
-                </div>
-                <div class="space-y-4">
-                    <div><label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label><input type="text" id="image-url" placeholder="https://..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></div>
-                    <div><label class="block text-sm font-medium text-gray-700 mb-1">Promp</label><textarea id="image-prompt" rows="3" placeholder="Masukkan promp..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea></div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label><select id="category-select" class="w-full p-3 border border-gray-300 rounded-lg"><option value="">-- Pilih --</option></select></div>
-                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Atau Baru</label><input type="text" id="new-category" placeholder="Cth: Anime..." class="w-full p-3 border border-gray-300 rounded-lg"></div>
+            <!-- Borang Tambah -->
+            <div id="add-form-container" class="hidden mb-10 px-4">
+                <form id="add-form" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto border-l-4 border-green-500">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">Tambah Promp Baru</h2>
+                        <button type="button" onclick="window.toggleAddForm()" class="text-gray-400 hover:text-red-500 text-xl">&times;</button>
                     </div>
-                    <button type="submit" id="submit-button" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400">Hantar untuk Approval</button>
-                </div>
-            </form>
-        </div>
+                    <div class="space-y-4">
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label><input type="text" id="image-url" placeholder="https://..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></div>
+                        <div><label class="block text-sm font-medium text-gray-700 mb-1">Promp</label><textarea id="image-prompt" rows="3" placeholder="Masukkan promp..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div><label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label><select id="category-select" class="w-full p-3 border border-gray-300 rounded-lg"><option value="">-- Pilih --</option></select></div>
+                            <div><label class="block text-sm font-medium text-gray-700 mb-1">Atau Baru</label><input type="text" id="new-category" placeholder="Cth: Anime..." class="w-full p-3 border border-gray-300 rounded-lg"></div>
+                        </div>
+                        <button type="submit" id="submit-button" class="w-full bg-blue-600 text-white font-semibold p-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400">Hantar untuk Approval</button>
+                    </div>
+                </form>
+            </div>
 
-        <!-- HALAMAN PROFIL PENGGUNA -->
-        <div id="profile-view-container" class="hidden mb-10 px-4 animate-fade-in">
-            <div class="bg-white rounded-xl shadow-md overflow-hidden max-w-4xl mx-auto">
-                <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
-                <div class="px-6 pb-6">
-                    <div class="flex flex-col md:flex-row items-start md:items-end -mt-12 mb-4 gap-4">
-                        <img id="profile-img" src="https://placehold.co/150x150?text=User" class="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover bg-white">
-                        <div class="flex-1">
-                            <h2 id="profile-name" class="text-2xl font-bold text-gray-800">Nama Pengguna</h2>
-                            <div class="flex items-center gap-2 mt-1">
-                                <p id="profile-bio" class="text-gray-600 text-sm">Tiada bio lagi.</p>
-                                <button id="edit-bio-btn" onclick="window.toggleBioEdit()" class="hidden text-blue-600 text-xs hover:underline font-medium ml-2">Edit Bio</button>
-                            </div>
-                            <div id="bio-edit-form" class="hidden mt-2">
-                                <textarea id="bio-input" rows="2" class="w-full p-2 border rounded text-sm mb-2" placeholder="Tulis bio anda..."></textarea>
-                                <div class="flex gap-2">
-                                    <button onclick="window.saveBio()" class="bg-blue-600 text-white px-3 py-1 rounded text-xs">Simpan</button>
-                                    <button onclick="window.toggleBioEdit()" class="text-gray-500 px-3 py-1 text-xs">Batal</button>
+            <!-- HALAMAN PROFIL -->
+            <div id="profile-view-container" class="hidden mb-10 px-4 animate-fade-in">
+                <div class="bg-white rounded-xl shadow-md overflow-hidden max-w-4xl mx-auto">
+                    <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
+                    <div class="px-6 pb-6">
+                        <div class="flex flex-col md:flex-row items-start md:items-end -mt-12 mb-4 gap-4">
+                            <img id="profile-img" src="https://placehold.co/150x150?text=User" class="w-24 h-24 rounded-full border-4 border-white shadow-lg object-cover bg-white">
+                            <div class="flex-1">
+                                <h2 id="profile-name" class="text-2xl font-bold text-gray-800">Nama Pengguna</h2>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <p id="profile-bio" class="text-gray-600 text-sm">Tiada bio lagi.</p>
+                                    <button id="edit-bio-btn" onclick="window.toggleBioEdit()" class="hidden text-blue-600 text-xs hover:underline font-medium ml-2">Edit Bio</button>
+                                </div>
+                                <div id="bio-edit-form" class="hidden mt-2">
+                                    <textarea id="bio-input" rows="2" class="w-full p-2 border rounded text-sm mb-2" placeholder="Tulis bio anda..."></textarea>
+                                    <div class="flex gap-2">
+                                        <button onclick="window.saveBio()" class="bg-blue-600 text-white px-3 py-1 rounded text-xs">Simpan</button>
+                                        <button onclick="window.toggleBioEdit()" class="text-gray-500 px-3 py-1 text-xs">Batal</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="border-t border-gray-100 pt-4">
-                        <h3 class="font-bold text-gray-700 mb-4">Galeri Pengguna Ini</h3>
-                        <div id="profile-gallery-grid" class="flex flex-wrap gap-2 justify-center"></div>
+                        <div class="border-t border-gray-100 pt-4">
+                            <h3 class="font-bold text-gray-700 mb-4">Galeri Pengguna Ini</h3>
+                            <div id="profile-gallery-grid" class="flex flex-wrap gap-2 justify-center"></div>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Controls Bar -->
+            <div id="main-controls-bar" class="mb-6 mx-4 flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
+                <div class="overflow-x-auto pb-2 lg:pb-0 hide-scrollbar w-full lg:w-auto flex-1 flex items-center gap-3">
+                    <div id="category-tabs" class="flex space-x-2 min-w-max px-1 justify-center lg:justify-start">
+                        <button class="px-4 py-1.5 rounded-full bg-blue-600 text-white text-xs font-semibold">Semua</button>
+                    </div>
+                    <button id="user-filter-chip" onclick="window.clearUserFilter()" class="hidden px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold border border-purple-300 flex items-center gap-2 hover:bg-purple-200 transition-colors whitespace-nowrap animate-fade-in">
+                        <span class="opacity-70 font-normal">By:</span> <span id="user-filter-name">User</span> <span class="text-lg leading-none ml-1 text-purple-400 hover:text-purple-800">&times;</span>
+                    </button>
+                </div>
+                <div class="flex items-center gap-3 px-4 border-l border-gray-200">
+                    <input type="range" id="size-slider" min="150" max="600" value="300" class="w-24 sm:w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                </div>
+                <button id="approve-all-btn" class="hidden bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-sm font-bold flex items-center gap-2 animate-pulse"><span class="text-lg">✓</span> Approve Semua (<span id="approve-all-count">0</span>)</button>
+            </div>
+
+            <h2 id="current-view-title" class="text-xl font-bold text-gray-700 mb-4 border-b pb-2 px-4">Galeri Awam</h2>
+            <div id="gallery-container" class="flex flex-wrap gap-2 px-2 justify-center">
+                <p id="loading-message" class="text-gray-500 w-full text-center">Memuatkan...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- MOBILE SIDEBAR OVERLAY -->
+    <div id="mobile-backdrop" onclick="window.toggleMobileMenu()" class="fixed inset-0 bg-black/50 z-[90] hidden transition-opacity duration-300 opacity-0"></div>
+    
+    <div id="mobile-sidebar" class="fixed top-0 right-0 h-full w-72 bg-white shadow-2xl z-[100] transform transition-transform duration-300 translate-x-full flex flex-col">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <span class="font-bold text-gray-800 text-lg">Menu</span>
+            <button onclick="window.toggleMobileMenu()" class="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-red-500 hover:border-red-200 transition-colors">
+                &times;
+            </button>
         </div>
 
-        <!-- Controls Bar (Filter) - KEKAL DI SINI -->
-        <div id="main-controls-bar" class="mb-6 mx-4 flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-            <div class="overflow-x-auto pb-2 lg:pb-0 hide-scrollbar w-full lg:w-auto flex-1 flex items-center gap-3">
-                <div id="category-tabs" class="flex space-x-2 min-w-max px-1 justify-center lg:justify-start">
-                    <button class="px-4 py-1.5 rounded-full bg-blue-600 text-white text-xs font-semibold">Semua</button>
+        <div class="flex-1 overflow-y-auto p-4 space-y-2">
+            <div class="mb-6 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                <button id="mobile-login-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-center shadow-md hover:bg-blue-700">Log Masuk Google</button>
+                
+                <div id="mobile-user-info" class="hidden">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-bold">U</div>
+                        <div class="overflow-hidden">
+                            <p class="text-xs text-gray-500 uppercase font-semibold">Hai,</p>
+                            <p id="mobile-username" class="font-bold text-gray-800 truncate">User</p>
+                        </div>
+                    </div>
+                    <button id="mobile-logout-btn" class="w-full text-red-500 text-xs font-bold border border-red-200 py-2 rounded-lg hover:bg-red-50 transition-colors">Log Keluar</button>
                 </div>
-                <button id="user-filter-chip" onclick="window.clearUserFilter()" class="hidden px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold border border-purple-300 flex items-center gap-2 hover:bg-purple-200 transition-colors whitespace-nowrap animate-fade-in">
-                    <span class="opacity-70 font-normal">By:</span> <span id="user-filter-name">User</span> <span class="text-lg leading-none ml-1 text-purple-400 hover:text-purple-800">&times;</span>
+            </div>
+
+            <button onclick="window.switchView('gallery'); window.toggleMobileMenu()" class="mobile-nav-btn">
+                <span>🏠</span> Galeri Awam
+            </button>
+            
+            <div id="mobile-user-links" class="hidden space-y-2 mt-2">
+                <button onclick="if(currentUserId) window.showUserProfile(currentUserId); window.toggleMobileMenu()" class="mobile-nav-btn">
+                    <span>👤</span> Profil Saya
+                </button>
+                <button onclick="window.switchView('liked'); window.toggleMobileMenu()" class="mobile-nav-btn">
+                    <span>❤️</span> Promp Disukai
+                </button>
+                <button onclick="window.switchView('pending'); window.toggleMobileMenu()" class="mobile-nav-btn justify-between">
+                    <div class="flex gap-3"><span>⏳</span> Pending</div>
+                    <span id="mobile-pending-count" class="bg-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                </button>
+                <button id="mobile-nav-request" onclick="window.switchView('request'); window.toggleMobileMenu()" class="mobile-nav-btn hidden text-yellow-700 bg-yellow-50 border-yellow-100 justify-between">
+                    <div class="flex gap-3"><span>🛡️</span> Permintaan</div>
+                    <span id="mobile-request-count" class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
                 </button>
             </div>
-            <div class="flex items-center gap-3 px-4 border-l border-gray-200">
-                <input type="range" id="size-slider" min="150" max="600" value="300" class="w-24 sm:w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-            </div>
-            <button id="approve-all-btn" class="hidden bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-sm font-bold flex items-center gap-2 animate-pulse"><span class="text-lg">✓</span> Approve Semua (<span id="approve-all-count">0</span>)</button>
         </div>
-
-        <h2 id="current-view-title" class="text-xl font-bold text-gray-700 mb-4 border-b pb-2 px-4">Galeri Awam</h2>
-        <div id="gallery-container" class="flex flex-wrap gap-2 px-2 justify-center">
-            <p id="loading-message" class="text-gray-500 w-full text-center">Memuatkan...</p>
+        
+        <div class="p-4 text-center text-xs text-gray-400 border-t border-gray-100">
+            Galeri Promp v2.0
         </div>
-    </main>
+    </div>
 
     <!-- Modal Lihat Penuh -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">&lt;</button>
+        
         <div id="modal-content-wrapper" class="bg-white w-full max-w-5xl h-[95vh] md:h-[90vh] rounded-xl shadow-2xl relative animate-fade-in flex flex-col md:flex-row overflow-hidden">
             <button id="close-modal-btn" class="sticky top-2 right-2 md:absolute z-50 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors ml-auto md:ml-0 mb-2 md:mb-0">&times;</button>
+            
             <div id="modal-mobile-scroll-container" class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-hidden custom-scroll relative">
                 <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0 h-auto min-h-[300px] md:h-full relative">
                     <img id="modal-img" src="" class="w-full h-auto md:w-auto md:max-h-full md:max-w-full md:object-contain rounded-lg">
@@ -187,8 +218,16 @@
                         </div>
                     </div>
                     <div id="modal-text-content" class="p-4 bg-gray-50 pb-40 md:pb-4 md:flex-grow md:overflow-y-auto custom-scroll">
-                        <div class="mb-6"><h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Promp Penuh</h4><p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white p-3 rounded border shadow-sm select-text"></p></div>
-                        <div><h4 class="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">Komen (<span id="comment-count">0</span>)</h4><div id="comments-list" class="space-y-3"></div></div>
+                        <div class="mb-6">
+                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Promp Penuh</h4>
+                            <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white p-3 rounded border shadow-sm select-text"></p>
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
+                                Komen (<span id="comment-count">0</span>)
+                            </h4>
+                            <div id="comments-list" class="space-y-3"></div>
+                        </div>
                     </div>
                     <div class="p-3 bg-white border-t border-gray-200 fixed bottom-0 left-0 w-full z-[60] md:static md:w-full shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
                         <div class="flex gap-2 mb-3 max-w-5xl mx-auto md:max-w-none px-2 md:px-0">
@@ -254,7 +293,8 @@
             
             // Mobile Elements
             mobileMenuBtn: document.getElementById('mobile-menu-toggle'),
-            mobileMenu: document.getElementById('mobile-menu'),
+            mobileSidebar: document.getElementById('mobile-sidebar'),
+            mobileBackdrop: document.getElementById('mobile-backdrop'),
             mobileAddBtn: document.getElementById('mobile-add-btn'),
             mobileLoginBtn: document.getElementById('mobile-login-btn'),
             mobileUserInfo: document.getElementById('mobile-user-info'),
@@ -312,23 +352,30 @@
 
         els.sizeSlider.addEventListener('input', (e) => document.documentElement.style.setProperty('--img-height', `${e.target.value}px`));
 
-        // --- MOBILE MENU LOGIC ---
+        // --- MOBILE SLIDE MENU LOGIC ---
         window.toggleMobileMenu = () => {
-            const isHidden = els.mobileMenu.classList.contains('hidden');
-            if (isHidden) {
-                els.mobileMenu.classList.remove('hidden');
+            const sidebar = els.mobileSidebar;
+            const backdrop = els.mobileBackdrop;
+            const isClosed = sidebar.classList.contains('translate-x-full');
+            
+            if (isClosed) {
+                sidebar.classList.remove('translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                backdrop.classList.remove('hidden');
+                setTimeout(() => backdrop.classList.remove('opacity-0'), 10); 
             } else {
-                els.mobileMenu.classList.add('hidden');
+                sidebar.classList.remove('translate-x-0');
+                sidebar.classList.add('translate-x-full');
+                backdrop.classList.add('opacity-0');
+                setTimeout(() => backdrop.classList.add('hidden'), 300); 
             }
         };
         
         window.toggleAddForm = () => {
             els.addFormContainer.classList.toggle('hidden');
-            // Also close mobile menu if open
-            if(!els.mobileMenu.classList.contains('hidden')) els.mobileMenu.classList.add('hidden');
+            if (!els.mobileSidebar.classList.contains('translate-x-full')) window.toggleMobileMenu();
         };
         
-        // Update UI helper to sync Desktop and Mobile nav states
         function updateMobileMenuUI(user) {
             if(user) {
                 els.mobileLoginBtn.classList.add('hidden');
@@ -537,7 +584,7 @@
                 els.commentInput.value = '';
                 const commentsRef = collection(db, `${galleryRef.path}/${item.id}/comments`);
                 await addDoc(commentsRef, commentData);
-                scrollToBottomComments(); // AUTO SCROLL
+                scrollToBottomComments(); 
                 if (item.userId && item.userId !== currentUserId) {
                     const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${item.userId}/notifications`);
                     addDoc(notifRef, { type: 'comment', fromName: commentData.userName, itemId: item.id, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error);
