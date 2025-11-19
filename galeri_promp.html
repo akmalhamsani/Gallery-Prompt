@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Promp (Approval System)</title>
+    <title>Galeri Promp (Social)</title>
     <!-- Muat naik Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -30,11 +30,19 @@
             height: var(--img-height);
             transition: height 0.1s ease-out;
         }
-        /* Style untuk butang navigasi modal */
         .modal-nav-btn {
             @apply absolute z-20 p-2 text-white text-3xl opacity-60 hover:opacity-100 transition-opacity;
             top: 50%; transform: translateY(-50%);
         }
+        /* Animasi Like */
+        @keyframes heart-beat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .like-anim { animation: heart-beat 0.4s ease-in-out; }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-6 md:p-10">
@@ -43,7 +51,6 @@
 
         <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 px-4">
-            <!-- Menambah logo dan tajuk di dalam satu container flex -->
             <div class="flex items-center gap-3">
                 <img src="https://akmalhamsani.github.io/Gallery-Prompt/logo.png" alt="Galeri Promp Logo" class="w-10 h-10 object-contain">
                 <div>
@@ -60,6 +67,8 @@
                 <div id="user-controls" class="hidden flex flex-wrap justify-center sm:justify-end items-center gap-2">
                     <div class="flex items-center gap-2 mr-2">
                         <button id="nav-gallery" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Semua Gambar Approved">Galeri</button>
+                        <!-- TAB LIKED (BARU) -->
+                        <button id="nav-liked" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Gambar yang saya like">Liked ❤️</button>
                         <button id="nav-myprompt" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors" title="Gambar Saya">My Prompt</button>
                         <button id="nav-pending" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden" title="Menunggu Approval">
                             Pending <span id="pending-count-user" class="ml-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden">0</span>
@@ -105,35 +114,23 @@
 
         <!-- Controls Bar -->
         <div class="mb-6 mx-4 flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-            <!-- Kiri: Tab Kategori & User Filter Indicator -->
             <div class="overflow-x-auto pb-2 lg:pb-0 hide-scrollbar w-full lg:w-auto flex-1 flex items-center gap-3">
                 <div id="category-tabs" class="flex space-x-2 min-w-max px-1 justify-center lg:justify-start">
                     <button class="px-4 py-1.5 rounded-full bg-blue-600 text-white text-xs font-semibold">Semua</button>
                 </div>
-                
-                <!-- User Filter Chip (Muncul bila user filter aktif) -->
                 <button id="user-filter-chip" onclick="window.clearUserFilter()" class="hidden px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold border border-purple-300 flex items-center gap-2 hover:bg-purple-200 transition-colors whitespace-nowrap animate-fade-in">
-                    <span class="opacity-70 font-normal">By:</span>
-                    <span id="user-filter-name">User</span>
-                    <span class="text-lg leading-none ml-1 text-purple-400 hover:text-purple-800">&times;</span>
+                    <span class="opacity-70 font-normal">By:</span> <span id="user-filter-name">User</span> <span class="text-lg leading-none ml-1 text-purple-400 hover:text-purple-800">&times;</span>
                 </button>
             </div>
-
-            <!-- Tengah/Kanan: Slider Saiz Gambar -->
             <div class="flex items-center gap-3 px-4 border-l border-gray-200">
                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 <input type="range" id="size-slider" min="150" max="600" value="300" class="w-24 sm:w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                 <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
-
-            <button id="approve-all-btn" class="hidden bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-sm font-bold flex items-center gap-2 animate-pulse">
-                <span class="text-lg">✓</span> Approve Semua (<span id="approve-all-count">0</span>)
-            </button>
+            <button id="approve-all-btn" class="hidden bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow-md text-sm font-bold flex items-center gap-2 animate-pulse"><span class="text-lg">✓</span> Approve Semua (<span id="approve-all-count">0</span>)</button>
         </div>
 
         <h2 id="current-view-title" class="text-xl font-bold text-gray-700 mb-4 border-b pb-2 px-4">Galeri Awam</h2>
-
-        <!-- Galeri Container -->
         <div id="gallery-container" class="flex flex-wrap gap-2 px-2 justify-center">
             <p id="loading-message" class="text-gray-500 w-full text-center">Memuatkan...</p>
         </div>
@@ -143,7 +140,6 @@
     <!-- Modal Lihat Penuh -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">&lt;</button>
-        
         <div id="modal-content-wrapper" class="bg-white w-full max-w-4xl max-h-[90vh] h-auto rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
             <button id="close-modal-btn" class="absolute top-2 right-2 z-30 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
             <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0">
@@ -166,18 +162,19 @@
                 </div>
             </div>
         </div>
-        
         <button id="next-modal-btn" class="modal-nav-btn right-2 hidden">&gt;</button>
     </div>
 
-    <div id="notification" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-50 flex items-center gap-2">
+    <!-- Notifikasi Toast (Global) -->
+    <div id="notification" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-[200] flex items-center gap-2 transition-all duration-300 transform translate-y-10 opacity-0">
+        <span id="notif-icon">🔔</span>
         <span id="notif-msg">Mesej</span>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, setDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, setDoc, updateDoc, writeBatch, arrayUnion, arrayRemove, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCpOw2nHuxHpKfkDxZzAe4nyqXrmhZZbSM",
@@ -192,8 +189,7 @@
 
         let db, auth, galleryRef, categoriesRef;
         let allItems = [], currentUserId = null, isSuperUser = false;
-        let currentView = 'gallery', currentCategory = 'all', currentUserIdFilter = null; // Added User Filter State
-        
+        let currentView = 'gallery', currentCategory = 'all', currentUserIdFilter = null;
         let modalItems = [];
         let currentModalIndex = -1;
         let touchstartX = 0;
@@ -209,15 +205,13 @@
             submitBtn: document.getElementById('submit-button'),
             gallery: document.getElementById('gallery-container'),
             catTabs: document.getElementById('category-tabs'),
-            userFilterChip: document.getElementById('user-filter-chip'), // NEW
-            userFilterName: document.getElementById('user-filter-name'), // NEW
+            userFilterChip: document.getElementById('user-filter-chip'),
+            userFilterName: document.getElementById('user-filter-name'),
             catSelect: document.getElementById('category-select'),
             viewTitle: document.getElementById('current-view-title'),
             approveAllBtn: document.getElementById('approve-all-btn'),
             approveAllCount: document.getElementById('approve-all-count'),
             modal: document.getElementById('view-modal'),
-            modalContentWrapper: document.getElementById('modal-content-wrapper'),
-            modalImageArea: document.getElementById('modal-image-area'),
             modalImg: document.getElementById('modal-img'),
             modalPrompt: document.getElementById('modal-prompt'),
             modalCategory: document.getElementById('modal-category'),
@@ -226,9 +220,14 @@
             closeModalBtn: document.getElementById('close-modal-btn'),
             prevBtn: document.getElementById('prev-modal-btn'),
             nextBtn: document.getElementById('next-modal-btn'),
+            modalImageArea: document.getElementById('modal-image-area'),
             sizeSlider: document.getElementById('size-slider'),
+            notif: document.getElementById('notification'),
+            notifMsg: document.getElementById('notif-msg'),
+            notifIcon: document.getElementById('notif-icon'),
             navs: {
                 gallery: document.getElementById('nav-gallery'),
+                liked: document.getElementById('nav-liked'), // TAB BARU
                 myprompt: document.getElementById('nav-myprompt'),
                 pending: document.getElementById('nav-pending'),
                 request: document.getElementById('nav-request')
@@ -239,39 +238,20 @@
             }
         };
 
-        // --- SLIDER LOGIC ---
-        els.sizeSlider.addEventListener('input', (e) => {
-            const size = e.target.value;
-            document.documentElement.style.setProperty('--img-height', `${size}px`);
-        });
+        els.sizeSlider.addEventListener('input', (e) => document.documentElement.style.setProperty('--img-height', `${e.target.value}px`));
 
-        // --- CATEGORY FILTER ---
-        window.filterByCategory = (categoryName) => {
-            currentCategory = categoryName;
+        window.filterByCategory = (cat) => {
+            currentCategory = cat;
             Array.from(els.catTabs.children).forEach(btn => {
                 const btnCat = btn.textContent === 'Semua' ? 'all' : btn.textContent;
-                const isActive = btnCat === categoryName;
-                btn.className = isActive 
-                    ? 'px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border bg-blue-600 text-white border-blue-600' 
-                    : 'px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border bg-white text-gray-600 border-gray-300 hover:bg-gray-50';
-                if(isActive) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                btn.className = btnCat === cat ? 'px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border bg-blue-600 text-white border-blue-600' : 'px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border bg-white text-gray-600 border-gray-300 hover:bg-gray-50';
+                if(btnCat === cat) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             });
             renderGallery();
         };
 
-        // --- USER FILTER (NEW) ---
-        window.filterByUser = (userId, userName) => {
-            currentUserIdFilter = userId;
-            els.userFilterName.textContent = userName || 'User';
-            els.userFilterChip.classList.remove('hidden');
-            renderGallery();
-        };
-
-        window.clearUserFilter = () => {
-            currentUserIdFilter = null;
-            els.userFilterChip.classList.add('hidden');
-            renderGallery();
-        };
+        window.filterByUser = (uid, name) => { currentUserIdFilter = uid; els.userFilterName.textContent = name || 'User'; els.userFilterChip.classList.remove('hidden'); renderGallery(); };
+        window.clearUserFilter = () => { currentUserIdFilter = null; els.userFilterChip.classList.add('hidden'); renderGallery(); };
 
         function switchView(viewName) {
             currentView = viewName;
@@ -279,35 +259,70 @@
             if(els.navs[viewName]) els.navs[viewName].classList.add('active');
 
             if (viewName === 'gallery') els.viewTitle.textContent = "Galeri Awam";
+            else if (viewName === 'liked') els.viewTitle.textContent = "Promp Yang Saya Like ❤️";
             else if (viewName === 'myprompt') els.viewTitle.textContent = "Koleksi Saya";
             else if (viewName === 'pending') els.viewTitle.textContent = "Pending Approval";
             else if (viewName === 'request') els.viewTitle.textContent = "Permintaan Approval (Admin)";
 
-            if (viewName === 'request' && isSuperUser) els.approveAllBtn.classList.remove('hidden');
-            else els.approveAllBtn.classList.add('hidden');
-
+            if (viewName === 'request' && isSuperUser) els.approveAllBtn.classList.remove('hidden'); else els.approveAllBtn.classList.add('hidden');
             renderGallery();
         }
 
+        // --- LIKE & NOTIFICATION LOGIC ---
+        window.toggleLike = async (itemId, ownerId) => {
+            if (!currentUserId) return notify("Sila log masuk untuk like.", 'error');
+            
+            const item = allItems.find(i => i.id === itemId);
+            if(!item) return;
+            
+            const isLiked = item.likes && item.likes.includes(currentUserId);
+            const itemRef = doc(db, galleryRef.path, itemId);
+
+            try {
+                if (isLiked) {
+                    // Unlike
+                    await updateDoc(itemRef, { likes: arrayRemove(currentUserId) });
+                } else {
+                    // Like
+                    await updateDoc(itemRef, { likes: arrayUnion(currentUserId) });
+                    notify("Liked!", 'success');
+                    
+                    // Hantar notifikasi kepada pemilik (jika bukan diri sendiri)
+                    if (ownerId && ownerId !== currentUserId) {
+                        const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${ownerId}/notifications`);
+                        const user = auth.currentUser;
+                        addDoc(notifRef, {
+                            type: 'like',
+                            fromName: user.displayName || 'Seseorang',
+                            itemId: itemId,
+                            promptSnippet: item.prompt.substring(0, 20) + '...',
+                            timestamp: Date.now(),
+                            read: false
+                        }).catch(e => console.error("Fail notif", e));
+                    }
+                }
+            } catch (err) {
+                console.error("Error like:", err);
+                notify("Gagal like. Periksa sambungan.", 'error');
+            }
+        };
+
         function renderGallery() {
-            // Filter Chain: Category -> User -> View Mode
             let filtered = allItems.filter(item => {
                 const itemCat = item.category || 'Umum';
                 const catMatch = currentCategory === 'all' || itemCat === currentCategory;
-                // NEW: User Filter Match
                 const userMatch = !currentUserIdFilter || item.userId === currentUserIdFilter;
                 return catMatch && userMatch;
             });
             
             let itemsToShow = [];
-
             if (currentView === 'gallery') itemsToShow = filtered.filter(item => item.status === 'approved' || !item.status);
+            else if (currentView === 'liked') itemsToShow = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId)); // LOGIK TAB LIKED
             else if (currentView === 'myprompt') itemsToShow = filtered.filter(item => item.userId === currentUserId);
             else if (currentView === 'pending') itemsToShow = filtered.filter(item => item.userId === currentUserId && item.status === 'pending');
             else if (currentView === 'request') itemsToShow = filtered.filter(item => item.status === 'pending');
             
             if(currentView === 'request') els.approveAllCount.textContent = itemsToShow.length;
-
             els.gallery.innerHTML = '';
 
             if (itemsToShow.length === 0) {
@@ -324,180 +339,135 @@
                 const isPending = status === 'pending';
                 const canDelete = isOwner || isSuperUser;
                 
-                // UBAH: Tukar 'top-1' kepada 'top-10' supaya butang turun ke bawah header
-                const deleteBtn = canDelete ? 
-                    `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-10 right-1 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : '';
+                // Like Logic
+                const likes = item.likes || [];
+                const likeCount = likes.length;
+                const isLikedByMe = currentUserId && likes.includes(currentUserId);
+                const heartColor = isLikedByMe ? 'text-red-500' : 'text-white';
+                const heartFill = isLikedByMe ? 'currentColor' : 'none';
 
-                let approveBtn = '';
-                if (isSuperUser && isPending && currentView === 'request') {
-                    approveBtn = `<button onclick="event.stopPropagation(); window.approveItem('${item.id}')" class="approve-btn absolute top-1 left-1 z-20 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:bg-green-700 flex items-center gap-1">✓ Approve</button>`;
-                }
-
-                let statusBadge = '';
-                if (!isSuperUser && (currentView === 'myprompt' || currentView === 'pending')) {
-                    const badgeColor = isPending ? 'bg-yellow-500' : 'bg-green-500';
-                    const badgeText = isPending ? 'Pending' : 'Approved';
-                    statusBadge = `<span class="absolute top-1 left-1 z-10 ${badgeColor} text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm uppercase font-bold tracking-wider opacity-90">${badgeText}</span>`;
-                }
-
+                const deleteBtn = canDelete ? `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-10 right-1 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : '';
+                let approveBtn = (isSuperUser && isPending && currentView === 'request') ? `<button onclick="event.stopPropagation(); window.approveItem('${item.id}')" class="approve-btn absolute top-1 left-1 z-20 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:bg-green-700 flex items-center gap-1">✓ Approve</button>` : '';
+                let statusBadge = (!isSuperUser && (currentView === 'myprompt' || currentView === 'pending')) ? `<span class="absolute top-1 left-1 z-10 ${isPending?'bg-yellow-500':'bg-green-500'} text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm uppercase font-bold tracking-wider opacity-90">${isPending?'Pending':'Approved'}</span>` : '';
                 const viewBtn = `<button onclick="event.stopPropagation(); window.openModal('${item.id}')" class="view-btn absolute bottom-2 right-2 z-20 bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black backdrop-blur-sm" title="Lihat Penuh"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>`;
 
-                card.onclick = (e) => {
-                    if (!e.target.closest('button') && !e.target.closest('span[onclick]')) copyToClipboard(item.prompt);
-                };
+                card.onclick = (e) => { if (!e.target.closest('button') && !e.target.closest('span[onclick]')) copyToClipboard(item.prompt); };
 
                 card.innerHTML = `
                     <div class="relative overflow-hidden w-full h-full">
-                        
-                        <!-- Floating Header (Kategori & By: NAMA) -->
                         <div class="absolute top-0 left-0 right-0 p-2 bg-black/50 flex justify-between items-center gap-2 z-10">
-                            <span onclick="event.stopPropagation(); window.filterByCategory('${item.category || 'Umum'}')" class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded uppercase tracking-wide truncate max-w-[120px] cursor-pointer hover:bg-blue-200 transition-colors" title="Tapis ikut kategori ini">${item.category || 'Umum'}</span>
-                            
-                            <!-- USER FILTERABLE (NEW) -->
-                            <span onclick="event.stopPropagation(); window.filterByUser('${item.userId}', '${item.userName || 'User'}')" class="text-[10px] text-white/90 truncate cursor-pointer hover:text-purple-300 hover:underline transition-colors" title="Lihat semua dari pengguna ini">By: ${item.userName || 'User'}</span>
+                            <span onclick="event.stopPropagation(); window.filterByCategory('${item.category || 'Umum'}')" class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded uppercase tracking-wide truncate max-w-[120px] cursor-pointer hover:bg-blue-200 transition-colors">${item.category || 'Umum'}</span>
+                            <span onclick="event.stopPropagation(); window.filterByUser('${item.userId}', '${item.userName || 'User'}')" class="text-[10px] text-white/90 truncate cursor-pointer hover:text-purple-300 hover:underline">By: ${item.userName || 'User'}</span>
                         </div>
-
-                        ${deleteBtn}
-                        ${approveBtn}
-                        ${statusBadge}
-                        ${viewBtn}
+                        ${deleteBtn} ${approveBtn} ${statusBadge} ${viewBtn}
                         
                         <img src="${item.imageUrl}" class="dynamic-img w-auto min-w-full object-cover block transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=Error'">
                         
-                        <!-- Floating Footer (Promp Ringkas) -->
-                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-10">
-                            <p class="text-sm text-white line-clamp-1 font-medium">${item.prompt}</p>
+                        <!-- Footer Floating: Like (Kiri) & Promp (Kanan) -->
+                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent pointer-events-none z-10 flex items-end justify-between gap-2">
+                            <!-- Like Button (Clickable) -->
+                            <div class="pointer-events-auto">
+                                <button onclick="event.stopPropagation(); window.toggleLike('${item.id}', '${item.userId}'); this.firstElementChild.classList.add('like-anim'); setTimeout(()=>this.firstElementChild.classList.remove('like-anim'),400);" class="flex items-center gap-1 text-white hover:scale-110 transition-transform bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm">
+                                    <svg class="w-5 h-5 ${heartColor} transition-colors duration-300" fill="${heartFill}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                    <span class="text-xs font-bold">${likeCount}</span>
+                                </button>
+                            </div>
+                            
+                            <!-- Prompt Text -->
+                            <p class="text-sm text-white line-clamp-1 font-medium text-right flex-1 opacity-90">${item.prompt}</p>
                         </div>
                     </div>
                 `;
                 els.gallery.appendChild(card);
             });
-            
             for(let i=0; i<8; i++) els.gallery.appendChild(document.createElement('div')).className = 'flex-grow h-0 p-0 m-0 opacity-0 border-0';
         }
         
         function updateModalContent(index) {
             if (index < 0 || index >= modalItems.length) return;
-            const item = modalItems[index];
-            currentModalIndex = index;
-            els.modalImg.src = item.imageUrl;
-            els.modalPrompt.textContent = item.prompt;
-            els.modalCategory.textContent = item.category || 'Umum';
-            els.modalUploader.textContent = `Uploaded by: ${item.userName || 'User'}`;
+            const item = modalItems[index]; currentModalIndex = index;
+            els.modalImg.src = item.imageUrl; els.modalPrompt.textContent = item.prompt;
+            els.modalCategory.textContent = item.category || 'Umum'; els.modalUploader.textContent = `Uploaded by: ${item.userName || 'User'}`;
             els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt);
-            els.prevBtn.classList.toggle('hidden', currentModalIndex === 0);
-            els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1);
+            els.prevBtn.classList.toggle('hidden', currentModalIndex === 0); els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1);
         }
 
         window.openModal = (id) => {
-            // Apply same filters for modal navigation
             let filtered = allItems.filter(item => {
                 const itemCat = item.category || 'Umum';
-                const catMatch = currentCategory === 'all' || itemCat === currentCategory;
-                const userMatch = !currentUserIdFilter || item.userId === currentUserIdFilter;
-                return catMatch && userMatch;
+                return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter);
             });
-            
             if (currentView === 'gallery') modalItems = filtered.filter(item => item.status === 'approved' || !item.status);
+            else if (currentView === 'liked') modalItems = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId));
             else if (currentView === 'myprompt') modalItems = filtered.filter(item => item.userId === currentUserId);
             else if (currentView === 'pending') modalItems = filtered.filter(item => item.userId === currentUserId && item.status === 'pending');
             else if (currentView === 'request') modalItems = filtered.filter(item => item.status === 'pending');
             
             const initialIndex = modalItems.findIndex(i => i.id === id);
             if (initialIndex === -1) return;
-            updateModalContent(initialIndex);
-            els.modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
+            updateModalContent(initialIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden';
         };
-
-        window.closeModal = () => {
-            els.modal.classList.add('hidden');
-            document.body.style.overflow = '';
-            currentModalIndex = -1;
-            modalItems = [];
-        };
-        
+        window.closeModal = () => { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; };
         window.showPrevItem = () => { if (currentModalIndex > 0) updateModalContent(currentModalIndex - 1); };
         window.showNextItem = () => { if (currentModalIndex < modalItems.length - 1) updateModalContent(currentModalIndex + 1); };
-
         els.modalImageArea.addEventListener('touchstart', (e) => { touchstartX = e.changedTouches[0].screenX; }, false);
-        els.modalImageArea.addEventListener('touchend', (e) => {
-            const diffX = e.changedTouches[0].screenX - touchstartX;
-            if (Math.abs(diffX) > 50) { if (diffX < 0) window.showNextItem(); else window.showPrevItem(); }
-            touchstartX = 0;
-        }, false);
+        els.modalImageArea.addEventListener('touchend', (e) => { if (Math.abs(e.changedTouches[0].screenX - touchstartX) > 50) e.changedTouches[0].screenX < touchstartX ? window.showNextItem() : window.showPrevItem(); touchstartX = 0; }, false);
         
         window.addItem = async (e) => {
-            e.preventDefault();
-            if (!currentUserId) return notify("Sila log masuk.", 'error');
+            e.preventDefault(); if (!currentUserId) return notify("Sila log masuk.", 'error');
             els.submitBtn.disabled = true; els.submitBtn.innerText = "Menghantar...";
             const user = auth.currentUser;
-            const newItem = {
-                imageUrl: document.getElementById('image-url').value.trim(),
-                prompt: document.getElementById('image-prompt').value.trim(),
-                category: els.catSelect.value || document.getElementById('new-category').value.trim() || 'Umum',
-                timestamp: Date.now(),
-                userId: currentUserId,
-                userName: (user.displayName || 'User').split(' ')[0],
-                status: 'pending'
-            };
-            if (document.getElementById('new-category').value.trim()) {
-                 setDoc(doc(db, categoriesRef.path, newItem.category), { name: newItem.category }).catch(console.error);
-            }
-            try {
-                await addDoc(galleryRef, newItem);
-                els.addForm.reset(); els.toggleFormBtn.click();
-                notify("Berjaya dihantar! Menunggu kelulusan admin."); switchView('pending');
-            } catch (err) { console.error(err); notify("Gagal menghantar.", 'error'); } 
-            finally { els.submitBtn.disabled = false; els.submitBtn.innerText = "Hantar untuk Approval"; }
+            const newItem = { imageUrl: document.getElementById('image-url').value.trim(), prompt: document.getElementById('image-prompt').value.trim(), category: els.catSelect.value || document.getElementById('new-category').value.trim() || 'Umum', timestamp: Date.now(), userId: currentUserId, userName: (user.displayName || 'User').split(' ')[0], status: 'pending', likes: [] };
+            if (document.getElementById('new-category').value.trim()) setDoc(doc(db, categoriesRef.path, newItem.category), { name: newItem.category }).catch(console.error);
+            try { await addDoc(galleryRef, newItem); els.addForm.reset(); els.toggleFormBtn.click(); notify("Berjaya dihantar! Menunggu kelulusan admin."); switchView('pending'); } catch (err) { console.error(err); notify("Gagal menghantar.", 'error'); } finally { els.submitBtn.disabled = false; els.submitBtn.innerText = "Hantar untuk Approval"; }
         };
-
-        window.deleteItem = async (id) => { if(confirm("Padam item ini?")) { try { await deleteDoc(doc(db, galleryRef.path, id)); notify("Item dipadam."); } catch(err) { notify("Gagal memadam.", 'error'); } } };
+        window.deleteItem = async (id) => { if(confirm("Padam item ini?")) try { await deleteDoc(doc(db, galleryRef.path, id)); notify("Item dipadam."); } catch(err) { notify("Gagal memadam.", 'error'); } };
         window.approveItem = async (id) => { try { await updateDoc(doc(db, galleryRef.path, id), { status: 'approved' }); notify("Item diluluskan!"); } catch(err) { notify("Gagal approve.", 'error'); } };
-        window.approveAll = async () => {
-            const pendingItems = allItems.filter(item => item.status === 'pending');
-            if(pendingItems.length === 0) return;
-            if(!confirm(`Luluskan semua ${pendingItems.length} item?`)) return;
-            const batch = writeBatch(db);
-            pendingItems.forEach(item => batch.update(doc(db, galleryRef.path, item.id), { status: 'approved' }));
-            try { await batch.commit(); notify(`${pendingItems.length} item berjaya diluluskan!`); } catch(err) { notify("Gagal approve semua.", 'error'); }
-        };
+        window.approveAll = async () => { if(!confirm("Luluskan semua?")) return; const batch = writeBatch(db); allItems.filter(i => i.status === 'pending').forEach(i => batch.update(doc(db, galleryRef.path, i.id), { status: 'approved' })); try { await batch.commit(); notify("Semua diluluskan!"); } catch(err) { notify("Gagal.", 'error'); } };
+
+        // --- LISTEN FOR NOTIFICATIONS ---
+        function listenToNotifications(uid) {
+            const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${uid}/notifications`);
+            // Dengar notifikasi yang belum dibaca, susun ikut masa terkini
+            const q = query(notifRef, orderBy('timestamp', 'desc')); 
+            
+            onSnapshot(q, (snap) => {
+                snap.docChanges().forEach(async (change) => {
+                    if (change.type === 'added') {
+                        const data = change.doc.data();
+                        // Hanya tunjuk jika notifikasi baru (kurang dari 10 saat lepas) untuk elak spam masa load
+                        if (!data.read && Date.now() - data.timestamp < 10000) {
+                            notify(`❤️ ${data.fromName} menyukai promp: "${data.promptSnippet}"`, 'success');
+                            // Tandakan sebagai dibaca (atau padam terus)
+                            await deleteDoc(change.doc.ref); 
+                        }
+                    }
+                });
+            });
+        }
 
         async function init() {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app); auth = getAuth(app);
-            galleryRef = collection(db, `/artifacts/${appId}/public/data/gallery`);
-            categoriesRef = collection(db, `/artifacts/${appId}/public/data/categories`);
-
+            const app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app);
+            galleryRef = collection(db, `/artifacts/${appId}/public/data/gallery`); categoriesRef = collection(db, `/artifacts/${appId}/public/data/categories`);
             onSnapshot(query(categoriesRef), snap => {
                 const cats = []; els.catSelect.innerHTML = '<option value="">-- Pilih --</option>'; els.catTabs.innerHTML = ''; 
                 snap.forEach(d => cats.push(d.data().name)); cats.sort();
                 ['all', ...cats].forEach(cat => {
-                    const btn = document.createElement('button');
-                    btn.textContent = cat === 'all' ? 'Semua' : cat;
+                    const btn = document.createElement('button'); btn.textContent = cat === 'all' ? 'Semua' : cat;
                     btn.className = `px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border ${currentCategory === cat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`;
-                    btn.onclick = () => window.filterByCategory(cat);
-                    els.catTabs.appendChild(btn);
-                    if(cat !== 'all') els.catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+                    btn.onclick = () => window.filterByCategory(cat); els.catTabs.appendChild(btn); if(cat !== 'all') els.catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
                 });
             });
-
-            onSnapshot(query(galleryRef), snap => {
-                allItems = []; snap.forEach(d => allItems.push({id: d.id, ...d.data()}));
-                allItems.sort((a, b) => b.timestamp - a.timestamp);
-                updateCounts(); renderGallery();
-            });
-
+            onSnapshot(query(galleryRef), snap => { allItems = []; snap.forEach(d => allItems.push({id: d.id, ...d.data()})); allItems.sort((a, b) => b.timestamp - a.timestamp); updateCounts(); renderGallery(); });
             onAuthStateChanged(auth, user => {
                 if (user) {
                     currentUserId = user.uid; isSuperUser = user.email === SUPER_USER_EMAIL;
-                    els.userWelcome.textContent = `Hi, ${user.displayName?.split(' ')[0]}`;
-                    els.userWelcome.classList.remove('hidden'); els.loginBtn.classList.add('hidden'); els.userControls.classList.remove('hidden');
+                    els.userWelcome.textContent = `Hi, ${user.displayName?.split(' ')[0]}`; els.userWelcome.classList.remove('hidden'); els.loginBtn.classList.add('hidden'); els.userControls.classList.remove('hidden');
                     els.navs.myprompt.classList.remove('hidden'); els.navs.pending.classList.remove('hidden');
                     if(isSuperUser) { els.navs.request.classList.remove('hidden'); els.navs.pending.classList.add('hidden'); } else els.navs.request.classList.add('hidden');
+                    listenToNotifications(user.uid); // MULA DENGAR NOTIFIKASI
                 } else {
-                    currentUserId = null; isSuperUser = false;
-                    els.userWelcome.classList.add('hidden'); els.loginBtn.classList.remove('hidden'); els.userControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden');
+                    currentUserId = null; isSuperUser = false; els.userWelcome.classList.add('hidden'); els.loginBtn.classList.remove('hidden'); els.userControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden');
                     switchView('gallery');
                 }
                 renderGallery();
@@ -505,16 +475,19 @@
         }
 
         function updateCounts() {
-            const pendingUser = allItems.filter(i => i.userId === currentUserId && i.status === 'pending').length;
+            if(currentUserId){
+                 const pendingUser = allItems.filter(i => i.userId === currentUserId && i.status === 'pending').length;
+                 if(pendingUser > 0) { els.counts.pending.textContent = pendingUser; els.counts.pending.classList.remove('hidden'); } else els.counts.pending.classList.add('hidden');
+            }
             const pendingAll = allItems.filter(i => i.status === 'pending').length;
-            if(pendingUser > 0) { els.counts.pending.textContent = pendingUser; els.counts.pending.classList.remove('hidden'); } else els.counts.pending.classList.add('hidden');
             if(pendingAll > 0) { els.counts.request.textContent = pendingAll; els.counts.request.classList.remove('hidden'); } else els.counts.request.classList.add('hidden');
         }
 
         function notify(msg, type='success') {
-            const notif = document.getElementById('notification'); document.getElementById('notif-msg').textContent = msg;
-            notif.className = `fixed bottom-5 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-50 flex items-center gap-2 ${type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-800 text-white'}`;
-            notif.classList.remove('hidden'); setTimeout(() => notif.classList.add('hidden'), 3000);
+            els.notifMsg.textContent = msg; els.notifIcon.textContent = type==='error'?'⚠️':'🔔';
+            els.notif.className = `fixed bottom-5 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-[200] flex items-center gap-2 transition-all duration-300 transform translate-y-0 opacity-100 ${type === 'error' ? 'bg-red-600' : 'bg-gray-800'} text-white`;
+            els.notif.classList.remove('hidden');
+            setTimeout(() => { els.notif.classList.add('translate-y-10', 'opacity-0'); setTimeout(()=>els.notif.classList.add('hidden'), 300); }, 3000);
         }
 
         function copyToClipboard(text) {
@@ -522,20 +495,10 @@
             try { document.execCommand('copy'); notify('Promp disalin!'); } catch (e) {} document.body.removeChild(t);
         }
 
-        els.addForm.onsubmit = window.addItem;
-        els.loginBtn.onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
-        els.logoutBtn.onclick = () => signOut(auth);
-        els.toggleFormBtn.onclick = () => {
-            els.addFormContainer.classList.toggle('hidden');
-            els.toggleFormBtn.innerHTML = els.addFormContainer.classList.contains('hidden') ? '+' : '&times;';
-            els.toggleFormBtn.classList.toggle('bg-green-600'); els.toggleFormBtn.classList.toggle('bg-red-600');
-        };
-        els.approveAllBtn.onclick = window.approveAll;
-        els.closeModalBtn.onclick = window.closeModal;
-        els.modal.onclick = (e) => { if(e.target === els.modal) window.closeModal(); }; 
-        els.prevBtn.onclick = window.showPrevItem;
-        els.nextBtn.onclick = window.showNextItem;
-        
+        els.addForm.onsubmit = window.addItem; els.loginBtn.onclick = () => signInWithPopup(auth, new GoogleAuthProvider()); els.logoutBtn.onclick = () => signOut(auth);
+        els.toggleFormBtn.onclick = () => { els.addFormContainer.classList.toggle('hidden'); els.toggleFormBtn.innerHTML = els.addFormContainer.classList.contains('hidden') ? '+' : '&times;'; els.toggleFormBtn.classList.toggle('bg-green-600'); els.toggleFormBtn.classList.toggle('bg-red-600'); };
+        els.approveAllBtn.onclick = window.approveAll; els.closeModalBtn.onclick = window.closeModal; els.modal.onclick = (e) => { if(e.target === els.modal) window.closeModal(); }; 
+        els.prevBtn.onclick = window.showPrevItem; els.nextBtn.onclick = window.showNextItem;
         Object.keys(els.navs).forEach(key => { if(els.navs[key]) els.navs[key].onclick = () => switchView(key); });
         document.addEventListener('DOMContentLoaded', init);
     </script>
