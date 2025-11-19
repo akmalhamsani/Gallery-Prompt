@@ -181,13 +181,12 @@
 
             <!-- Navigation Buttons Mobile (Disusun Semula) -->
             <!-- Icon dibalut dalam span w-6 text-center untuk jajaran yang sama -->
-            
-            <button id="mobile-nav-gallery" onclick="window.switchView('gallery'); window.toggleMobileMenu()" class="mobile-nav-btn active">
-                <span class="w-6 flex justify-center text-lg">🏠</span>
-                <span>Galeri Awam</span>
-            </button>
-            
             <div id="mobile-user-links" class="hidden flex flex-col w-full space-y-2">
+                <button id="mobile-nav-gallery" onclick="window.switchView('gallery'); window.toggleMobileMenu()" class="mobile-nav-btn active">
+                    <span class="w-6 flex justify-center text-lg">🏠</span>
+                     <span>Galeri Awam</span>
+                </button>
+    
                 <button id="mobile-nav-myprofile" class="mobile-nav-btn">
                     <span class="w-6 flex justify-center text-lg">👤</span>
                     <span>Profil Saya</span>
@@ -199,18 +198,17 @@
                 </button>
                 
                 <button id="mobile-nav-pending" onclick="window.switchView('pending'); window.toggleMobileMenu()" class="mobile-nav-btn justify-between">
-                    <div class="flex items-center gap-3">
                         <span class="w-6 flex justify-center text-lg">⏳</span>
                         <span>Pending</span>
-                    </div>
+                    
                     <span id="mobile-pending-count" class="bg-yellow-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
                 </button>
                 
                 <button id="mobile-nav-request" onclick="window.switchView('request'); window.toggleMobileMenu()" class="mobile-nav-btn hidden text-yellow-700 bg-yellow-50 border-yellow-100 justify-between">
-                    <div class="flex items-center gap-3">
+                   
                         <span class="w-6 flex justify-center text-lg">🛡️</span>
                         <span>Permintaan</span>
-                    </div>
+                    
                     <span id="mobile-request-count" class="bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
                 </button>
             </div>
