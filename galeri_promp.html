@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Promp (Social Profile)</title>
+    <title>Galeri Promp (Mobile UI)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
@@ -15,8 +15,14 @@
         @media (hover: none) { .gallery-item .view-btn { opacity: 1; } }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Butang Navigasi Desktop */
         .nav-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .nav-btn { background-color: white; color: #4b5563; border: 1px solid #d1d5db; }
+        
+        /* Butang Navigasi Mobile */
+        .mobile-nav-btn { @apply w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-100 rounded-lg font-semibold transition-colors; }
+        
         :root { --img-height: 300px; }
         .dynamic-img { height: var(--img-height); transition: height 0.1s ease-out; }
         .modal-nav-btn { @apply absolute z-20 p-2 text-white text-3xl opacity-60 hover:opacity-100 transition-opacity; top: 50%; transform: translateY(-50%); }
@@ -28,30 +34,66 @@
 
     <main class="max-w-full mx-auto">
         <!-- Header -->
-        <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 px-4">
+        <div class="flex flex-row justify-between items-center mb-8 gap-4 px-4 relative">
+            <!-- Logo -->
             <div class="flex items-center gap-3 cursor-pointer" onclick="window.switchView('gallery')">
                 <img src="https://akmalhamsani.github.io/Gallery-Prompt/logo.png" alt="Logo" class="w-10 h-10 object-contain">
                 <div>
-                    <h1 class="text-3xl md:text-4xl font-bold text-center sm:text-left text-gray-800">Galeri Promp</h1>
-                    <p id="user-welcome" class="text-gray-600 text-center sm:text-left hidden text-sm mt-1"></p>
+                    <h1 class="text-2xl md:text-4xl font-bold text-center sm:text-left text-gray-800">Galeri Promp</h1>
+                    <p id="user-welcome" class="text-gray-600 text-xs md:text-sm hidden mt-1"></p>
                 </div>
             </div>
-            <div class="flex flex-col items-end gap-2 w-full sm:w-auto">
-                <button id="login-btn" class="w-full sm:w-auto bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">Log Masuk dengan Google</button>
-                <div id="user-controls" class="hidden flex flex-wrap justify-center sm:justify-end items-center gap-2">
+
+            <!-- DESKTOP NAVIGATION (Hidden on Mobile) -->
+            <div id="desktop-controls" class="hidden md:flex flex-col items-end gap-2">
+                <button id="login-btn" class="w-auto bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">Log Masuk</button>
+                <div id="user-controls" class="hidden flex flex-wrap justify-end items-center gap-2">
                     <div class="flex items-center gap-2 mr-2">
                         <button id="nav-gallery" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Galeri</button>
                         <button id="nav-liked" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Liked ❤️</button>
                         <button id="nav-myprofile" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Profil Saya</button>
-                        
                         <button id="nav-myprompt" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">My Prompt</button>
-                        
                         <button id="nav-pending" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">Pending <span id="pending-count-user" class="ml-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
                         <button id="nav-request" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden border-yellow-500 text-yellow-700">Requested <span id="request-count-admin" class="ml-1 bg-red-600 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
                     </div>
                     <div class="h-8 w-px bg-gray-300 mx-1"></div>
-                    <button id="toggle-form-btn" class="w-10 h-10 rounded-full bg-green-600 text-white text-2xl font-bold flex items-center justify-center hover:bg-green-700 transition-colors duration-200 shadow-sm">+</button>
+                    <button id="toggle-form-btn" class="w-10 h-10 rounded-full bg-green-600 text-white text-2xl font-bold flex items-center justify-center hover:bg-green-700 transition-colors duration-200 shadow-sm" title="Tambah">+</button>
                     <button id="logout-btn" class="bg-red-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-700 transition-colors duration-200 text-sm">Log Keluar</button>
+                </div>
+            </div>
+
+            <!-- MOBILE MENU BUTTON (Visible on Mobile Only) -->
+            <div class="md:hidden flex items-center gap-3">
+                <!-- Butang Tambah Mobile (Sentiasa nampak jika login) -->
+                <button id="mobile-add-btn" class="hidden w-10 h-10 rounded-full bg-green-600 text-white text-2xl font-bold flex items-center justify-center shadow-sm">+</button>
+                
+                <!-- Hamburger Button -->
+                <button id="mobile-menu-toggle" class="text-gray-700 hover:text-blue-600 focus:outline-none p-2">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+
+            <!-- MOBILE DROPDOWN MENU (Hidden by default) -->
+            <div id="mobile-menu" class="hidden absolute top-20 right-4 w-64 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 flex flex-col p-2 animate-fade-in origin-top-right">
+                
+                <!-- Menu Items (Akan di-toggle oleh JS berdasarkan Auth) -->
+                <div id="mobile-auth-section" class="border-b border-gray-100 mb-2 pb-2">
+                    <button id="mobile-login-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg text-center">Log Masuk Google</button>
+                    <div id="mobile-user-info" class="hidden px-2">
+                        <p id="mobile-username" class="font-bold text-gray-800 truncate">User</p>
+                        <button id="mobile-logout-btn" class="text-red-500 text-xs font-semibold mt-1">Log Keluar</button>
+                    </div>
+                </div>
+
+                <button onclick="window.switchView('gallery'); window.toggleMobileMenu()" class="mobile-nav-btn">🏠 Galeri Awam</button>
+                
+                <!-- Item untuk User Login Sahaja -->
+                <div id="mobile-user-links" class="hidden flex flex-col w-full">
+                    <button onclick="window.showUserProfile(currentUserId); window.toggleMobileMenu()" class="mobile-nav-btn">👤 Profil Saya</button>
+                    <button onclick="window.switchView('liked'); window.toggleMobileMenu()" class="mobile-nav-btn">❤️ Liked</button>
+                    <button onclick="window.switchView('pending'); window.toggleMobileMenu()" class="mobile-nav-btn">⏳ Pending <span id="mobile-pending-count" class="bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
+                    <!-- Admin Only -->
+                    <button id="mobile-nav-request" onclick="window.switchView('request'); window.toggleMobileMenu()" class="mobile-nav-btn hidden text-yellow-600">🛡️ Requested <span id="mobile-request-count" class="bg-red-600 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
                 </div>
             </div>
         </div>
@@ -59,7 +101,10 @@
         <!-- Borang Tambah -->
         <div id="add-form-container" class="hidden mb-10 px-4">
             <form id="add-form" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto border-l-4 border-green-500">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Tambah Promp Baru</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold text-gray-800">Tambah Promp Baru</h2>
+                    <button type="button" onclick="window.toggleAddForm()" class="text-gray-400 hover:text-red-500 text-xl">&times;</button>
+                </div>
                 <div class="space-y-4">
                     <div><label class="block text-sm font-medium text-gray-700 mb-1">URL Gambar</label><input type="text" id="image-url" placeholder="https://..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></div>
                     <div><label class="block text-sm font-medium text-gray-700 mb-1">Promp</label><textarea id="image-prompt" rows="3" placeholder="Masukkan promp..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" required></textarea></div>
@@ -72,10 +117,9 @@
             </form>
         </div>
 
-        <!-- HALAMAN PROFIL PENGGUNA (BARU) -->
+        <!-- HALAMAN PROFIL PENGGUNA -->
         <div id="profile-view-container" class="hidden mb-10 px-4 animate-fade-in">
             <div class="bg-white rounded-xl shadow-md overflow-hidden max-w-4xl mx-auto">
-                <!-- Cover / Header Profile -->
                 <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
                 <div class="px-6 pb-6">
                     <div class="flex flex-col md:flex-row items-start md:items-end -mt-12 mb-4 gap-4">
@@ -86,7 +130,6 @@
                                 <p id="profile-bio" class="text-gray-600 text-sm">Tiada bio lagi.</p>
                                 <button id="edit-bio-btn" onclick="window.toggleBioEdit()" class="hidden text-blue-600 text-xs hover:underline font-medium ml-2">Edit Bio</button>
                             </div>
-                            <!-- Edit Bio Form -->
                             <div id="bio-edit-form" class="hidden mt-2">
                                 <textarea id="bio-input" rows="2" class="w-full p-2 border rounded text-sm mb-2" placeholder="Tulis bio anda..."></textarea>
                                 <div class="flex gap-2">
@@ -98,14 +141,13 @@
                     </div>
                     <div class="border-t border-gray-100 pt-4">
                         <h3 class="font-bold text-gray-700 mb-4">Galeri Pengguna Ini</h3>
-                        <!-- Container Galeri Profil (Grid Khas) -->
                         <div id="profile-gallery-grid" class="flex flex-wrap gap-2 justify-center"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Controls Bar (Main Gallery Only) -->
+        <!-- Controls Bar (Filter) - KEKAL DI SINI -->
         <div id="main-controls-bar" class="mb-6 mx-4 flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
             <div class="overflow-x-auto pb-2 lg:pb-0 hide-scrollbar w-full lg:w-auto flex-1 flex items-center gap-3">
                 <div id="category-tabs" class="flex space-x-2 min-w-max px-1 justify-center lg:justify-start">
@@ -130,61 +172,31 @@
     <!-- Modal Lihat Penuh -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">&lt;</button>
-        
         <div id="modal-content-wrapper" class="bg-white w-full max-w-5xl h-[95vh] md:h-[90vh] rounded-xl shadow-2xl relative animate-fade-in flex flex-col md:flex-row overflow-hidden">
-            <!-- Close Button -->
             <button id="close-modal-btn" class="sticky top-2 right-2 md:absolute z-50 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors ml-auto md:ml-0 mb-2 md:mb-0">&times;</button>
-            
-            <!-- Scroll Container Mobile -->
             <div id="modal-mobile-scroll-container" class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-hidden custom-scroll relative">
-                <!-- Gambar -->
                 <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0 h-auto min-h-[300px] md:h-full relative">
                     <img id="modal-img" src="" class="w-full h-auto md:w-auto md:max-h-full md:max-w-full md:object-contain rounded-lg">
                 </div>
-                <!-- Info -->
                 <div class="w-full md:w-1/2 flex flex-col bg-white md:h-full h-auto border-l border-gray-200">
                     <div class="p-4 border-b border-gray-100 shrink-0">
                         <h3 class="text-lg font-bold text-gray-800 mb-1">Maklumat Promp</h3>
                         <div class="flex justify-between text-xs text-gray-500">
                             <span id="modal-category" class="bg-blue-100 text-blue-700 px-2 py-1 rounded font-bold"></span>
-                            <span id="modal-uploader" class="cursor-pointer hover:text-blue-600 hover:underline"></span> <!-- Clickable Uploader -->
+                            <span id="modal-uploader" class="cursor-pointer hover:text-blue-600 hover:underline"></span>
                         </div>
                     </div>
-                    <!-- Content Text -->
                     <div id="modal-text-content" class="p-4 bg-gray-50 pb-40 md:pb-4 md:flex-grow md:overflow-y-auto custom-scroll">
-                        <div class="mb-6">
-                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Promp Penuh</h4>
-                            <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white p-3 rounded border shadow-sm select-text"></p>
-                        </div>
-
-                        <div>
-                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
-                                Komen (<span id="comment-count">0</span>)
-                            </h4>
-                            <div id="comments-list" class="space-y-3"></div>
-                        </div>
+                        <div class="mb-6"><h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Promp Penuh</h4><p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white p-3 rounded border shadow-sm select-text"></p></div>
+                        <div><h4 class="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">Komen (<span id="comment-count">0</span>)</h4><div id="comments-list" class="space-y-3"></div></div>
                     </div>
-                    <!-- Footer Mobile Sticky / Desktop Static -->
                     <div class="p-3 bg-white border-t border-gray-200 fixed bottom-0 left-0 w-full z-[60] md:static md:w-full shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
                         <div class="flex gap-2 mb-3 max-w-5xl mx-auto md:max-w-none px-2 md:px-0">
-                            <button id="modal-like-btn" class="flex-1 bg-gray-50 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200">
-                                <svg id="modal-heart-icon" class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                                <span id="modal-like-count">0</span>
-                            </button>
-                            <button id="modal-copy-btn" class="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
-                                Salin Promp
-                            </button>
+                            <button id="modal-like-btn" class="flex-1 bg-gray-50 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200"><svg id="modal-heart-icon" class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><span id="modal-like-count">0</span></button>
+                            <button id="modal-copy-btn" class="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>Salin Promp</button>
                         </div>
-                        <div id="comment-input-area" class="relative max-w-5xl mx-auto md:max-w-none px-2 md:px-0">
-                            <input type="text" id="comment-input" placeholder="Tulis komen..." class="w-full p-3 pr-10 bg-gray-100 border-0 rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner" onkeypress="if(event.key==='Enter') window.postComment()">
-                            <button onclick="window.postComment()" class="absolute right-4 md:right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800 p-1">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                            </button>
-                        </div>
-                        <div id="login-to-comment" class="hidden text-center py-2 bg-gray-50 rounded-lg text-xs text-gray-500">
-                            <a href="#" onclick="document.getElementById('login-btn').click(); document.getElementById('view-modal').click();" class="text-blue-600 underline">Log masuk</a> untuk komen
-                        </div>
+                        <div id="comment-input-area" class="relative max-w-5xl mx-auto md:max-w-none px-2 md:px-0"><input type="text" id="comment-input" placeholder="Tulis komen..." class="w-full p-3 pr-10 bg-gray-100 border-0 rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner" onkeypress="if(event.key==='Enter') window.postComment()"><button onclick="window.postComment()" class="absolute right-4 md:right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg></button></div>
+                        <div id="login-to-comment" class="hidden text-center py-2 bg-gray-50 rounded-lg text-xs text-gray-500"><a href="#" onclick="document.getElementById('login-btn').click(); document.getElementById('view-modal').click();" class="text-blue-600 underline">Log masuk</a> untuk komen</div>
                     </div>
                 </div>
             </div>
@@ -219,7 +231,7 @@
         let modalItems = [], currentModalIndex = -1, touchstartX = 0;
         let commentsUnsubscribe = null;
         let replyUnsubscribes = {};
-        let profileUserId = null; // Menyimpan ID pengguna profile yang sedang dilihat
+        let profileUserId = null; 
 
         const els = {
             loginBtn: document.getElementById('login-btn'),
@@ -240,6 +252,19 @@
             approveAllBtn: document.getElementById('approve-all-btn'),
             approveAllCount: document.getElementById('approve-all-count'),
             
+            // Mobile Elements
+            mobileMenuBtn: document.getElementById('mobile-menu-toggle'),
+            mobileMenu: document.getElementById('mobile-menu'),
+            mobileAddBtn: document.getElementById('mobile-add-btn'),
+            mobileLoginBtn: document.getElementById('mobile-login-btn'),
+            mobileUserInfo: document.getElementById('mobile-user-info'),
+            mobileUsername: document.getElementById('mobile-username'),
+            mobileLogoutBtn: document.getElementById('mobile-logout-btn'),
+            mobileUserLinks: document.getElementById('mobile-user-links'),
+            mobilePendingCount: document.getElementById('mobile-pending-count'),
+            mobileRequestCount: document.getElementById('mobile-request-count'),
+            mobileNavRequest: document.getElementById('mobile-nav-request'),
+
             // Profile Elements
             profileViewContainer: document.getElementById('profile-view-container'),
             profileImg: document.getElementById('profile-img'),
@@ -277,7 +302,7 @@
             navs: { 
                 gallery: document.getElementById('nav-gallery'), 
                 liked: document.getElementById('nav-liked'), 
-                myprofile: document.getElementById('nav-myprofile'), // Tambah rujukan butang profile
+                myprofile: document.getElementById('nav-myprofile'),
                 myprompt: document.getElementById('nav-myprompt'), 
                 pending: document.getElementById('nav-pending'), 
                 request: document.getElementById('nav-request') 
@@ -286,6 +311,38 @@
         };
 
         els.sizeSlider.addEventListener('input', (e) => document.documentElement.style.setProperty('--img-height', `${e.target.value}px`));
+
+        // --- MOBILE MENU LOGIC ---
+        window.toggleMobileMenu = () => {
+            const isHidden = els.mobileMenu.classList.contains('hidden');
+            if (isHidden) {
+                els.mobileMenu.classList.remove('hidden');
+            } else {
+                els.mobileMenu.classList.add('hidden');
+            }
+        };
+        
+        window.toggleAddForm = () => {
+            els.addFormContainer.classList.toggle('hidden');
+            // Also close mobile menu if open
+            if(!els.mobileMenu.classList.contains('hidden')) els.mobileMenu.classList.add('hidden');
+        };
+        
+        // Update UI helper to sync Desktop and Mobile nav states
+        function updateMobileMenuUI(user) {
+            if(user) {
+                els.mobileLoginBtn.classList.add('hidden');
+                els.mobileUserInfo.classList.remove('hidden');
+                els.mobileUsername.textContent = user.displayName;
+                els.mobileUserLinks.classList.remove('hidden');
+                els.mobileAddBtn.classList.remove('hidden');
+            } else {
+                els.mobileLoginBtn.classList.remove('hidden');
+                els.mobileUserInfo.classList.add('hidden');
+                els.mobileUserLinks.classList.add('hidden');
+                els.mobileAddBtn.classList.add('hidden');
+            }
+        }
 
         function scrollToBottomComments() {
             setTimeout(() => {
@@ -302,18 +359,12 @@
             if(!uid) return;
             profileUserId = uid;
             currentView = 'profile';
-            
-            // Hide main stuff, show profile
             els.gallery.classList.add('hidden');
             els.mainControls.classList.add('hidden');
             els.addFormContainer.classList.add('hidden');
             els.viewTitle.classList.add('hidden');
             els.profileViewContainer.classList.remove('hidden');
-            
-            // Reset Nav Styles
             Object.values(els.navs).forEach(btn => btn.classList.remove('active'));
-
-            // 1. Fetch User Data (Bio, etc)
             els.profileName.textContent = "Memuatkan...";
             els.profileBio.textContent = "";
             els.profileImg.src = "https://placehold.co/150x150?text=Loading";
@@ -326,7 +377,6 @@
                     els.profileImg.src = data.photoURL || "https://placehold.co/150x150?text=User";
                     els.profileBio.textContent = data.bio || "Pengguna ini belum menulis bio.";
                 } else {
-                    // Fallback jika user belum ada di DB users (guna data dari gallery items jika ada)
                     const someItem = allItems.find(i => i.userId === uid);
                     els.profileName.textContent = someItem ? someItem.userName : 'Pengguna';
                     els.profileImg.src = "https://placehold.co/150x150?text=User";
@@ -334,39 +384,28 @@
                 }
             } catch (e) { console.error("Error loading profile", e); }
 
-            // 2. Show Edit Button if Owner
             if (currentUserId && currentUserId === uid) {
                 els.editBioBtn.classList.remove('hidden');
             } else {
                 els.editBioBtn.classList.add('hidden');
-                els.bioEditForm.classList.add('hidden'); // Pastikan form tutup
+                els.bioEditForm.classList.add('hidden'); 
             }
-
-            // 3. Render User's Gallery
             renderProfileGallery(uid);
-            
-            // Close Modal if open (e.g. clicked from modal)
             window.closeModal();
         };
 
         function renderProfileGallery(uid) {
-            const userItems = allItems.filter(i => i.userId === uid && (i.status === 'approved' || !i.status || (currentUserId === uid))); // Tunjuk approved atau semua jika owner
+            const userItems = allItems.filter(i => i.userId === uid && (i.status === 'approved' || !i.status || (currentUserId === uid)));
             els.profileGalleryGrid.innerHTML = '';
-            
             if (userItems.length === 0) {
                 els.profileGalleryGrid.innerHTML = '<p class="text-gray-400 w-full text-center py-8">Tiada gambar diupload.</p>';
                 return;
             }
-
             userItems.forEach(item => {
-                // Re-use simple card logic (mini version)
                 const div = document.createElement('div');
                 div.className = 'relative group overflow-hidden rounded-lg cursor-pointer h-40 w-40 md:h-48 md:w-48 bg-gray-200';
-                div.onclick = () => window.openModal(item.id); // Buka modal biasa
-                div.innerHTML = `
-                    <img src="${item.imageUrl}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
-                    <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>
-                `;
+                div.onclick = () => window.openModal(item.id);
+                div.innerHTML = `<img src="${item.imageUrl}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"><div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>`;
                 els.profileGalleryGrid.appendChild(div);
             });
         }
@@ -388,31 +427,25 @@
             const newBio = els.bioInput.value.trim();
             try {
                 const userRef = doc(db, `artifacts/${appId}/public/data/users`, currentUserId);
-                await updateDoc(userRef, { bio: newBio }); // Update bio
-                // Update UI secara manual segera
+                await updateDoc(userRef, { bio: newBio });
                 els.profileBio.textContent = newBio || "Tiada bio.";
                 window.toggleBioEdit();
                 notify("Bio dikemas kini!", 'success');
             } catch (e) {
-                // Jika dokumen belum wujud (rare case for logged in user due to my auth listener), create it
                 console.error("Error saving bio", e);
                 notify("Gagal simpan bio.", 'error');
             }
         };
 
-        // --- EXISTING LOGIC (Modified for Profile Integration) ---
-        
-        // FUNGSI INI MESTI DILEKATKAN KE WINDOW SUPAYA HTML ONCLICK BOLEH AKSES
+        // FUNGSI GLOBAL UNTUK HTML ACCESS
         window.switchView = function(viewName) {
             currentView = viewName;
-            profileUserId = null; // Reset profile view
-
-            // Show Main Gallery Elements
+            profileUserId = null;
             els.gallery.classList.remove('hidden');
             els.mainControls.classList.remove('hidden');
-            els.addFormContainer.classList.add('hidden'); // Reset form visibility
+            els.addFormContainer.classList.add('hidden');
             els.viewTitle.classList.remove('hidden');
-            els.profileViewContainer.classList.add('hidden'); // Hide Profile
+            els.profileViewContainer.classList.add('hidden'); 
 
             Object.values(els.navs).forEach(btn => btn.classList.remove('active'));
             if(els.navs[viewName]) els.navs[viewName].classList.add('active');
@@ -462,8 +495,6 @@
                     const timeAgo = dayjs(r.timestamp).fromNow();
                     const div = document.createElement('div');
                     div.className = 'bg-gray-50 p-2 rounded border-l-2 border-gray-300 text-xs mt-1 group';
-                    
-                    // Make username clickable
                     div.innerHTML = `<div class="flex justify-between items-start mb-1"><div class="flex items-center gap-2"><span class="font-bold text-gray-700 cursor-pointer hover:underline" onclick="window.showUserProfile('${r.userId}')">${r.userName || 'User'}</span><span class="text-[9px] text-gray-400">${timeAgo}</span></div>${canDelete ? `<button onclick="window.deleteReply('${itemId}', '${commentId}', '${rid}')" class="text-gray-300 hover:text-red-500" title="Padam">&times;</button>` : ''}</div><p class="text-gray-600 leading-tight">${r.text}</p>`;
                     container.appendChild(div);
                 });
@@ -486,8 +517,6 @@
                     const likes = c.likes || []; const isLiked = currentUserId && likes.includes(currentUserId); const likeCount = likes.length;
                     const div = document.createElement('div');
                     div.className = 'bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm group';
-                    
-                    // Make username clickable
                     div.innerHTML = `<div class="flex justify-between items-start mb-1"><div class="flex flex-col"><span class="font-bold text-gray-700 text-xs cursor-pointer hover:underline" onclick="window.showUserProfile('${c.userId}')">${c.userName || 'User'}</span><span class="text-[10px] text-gray-400">${timeAgo}</span></div><div class="flex items-center gap-2"><button onclick="window.toggleCommentLike('${itemId}', '${cid}', '${c.userId}')" class="flex items-center gap-1 text-gray-400 hover:text-pink-500 transition-colors ${isLiked ? 'text-pink-500' : ''}" title="Like"><span class="text-[10px] font-bold">${likeCount > 0 ? likeCount : ''}</span><svg class="w-3.5 h-3.5 ${isLiked ? 'fill-current' : 'fill-none'} stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg></button><button onclick="window.toggleReplyForm('${cid}')" class="text-gray-400 hover:text-blue-500 transition-colors" title="Balas"><svg class="w-3.5 h-3.5 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg></button>${canDelete ? `<button onclick="window.deleteComment('${itemId}', '${cid}')" class="text-gray-300 hover:text-red-500 transition-colors" title="Padam">&times;</button>` : ''}</div></div><p class="text-gray-600 leading-snug mb-2">${c.text}</p><div id="replies-container-${cid}" class="ml-2 pl-2 border-l-2 border-gray-100 space-y-2"></div><div id="reply-form-${cid}" class="hidden mt-2 flex gap-2"><input type="text" id="reply-input-${cid}" placeholder="Balas..." class="flex-1 p-1.5 text-xs border rounded bg-gray-50 focus:ring-1 focus:ring-blue-500"><button onclick="window.postReply('${itemId}', '${cid}', '${c.userId}')" class="text-blue-600 text-xs font-bold px-2">Hantar</button></div>`;
                     els.commentsList.appendChild(div);
                     const repliesContainer = div.querySelector(`#replies-container-${cid}`);
@@ -616,21 +645,53 @@
                         const userDocRef = doc(db, `artifacts/${appId}/public/data/users`, user.uid);
                         await setDoc(userDocRef, { displayName: user.displayName, photoURL: user.photoURL, email: user.email }, { merge: true });
                     } catch(e) { console.error("Error autosave profile", e); }
+                    updateMobileMenuUI(user);
                 } else { 
                     currentUserId = null; isSuperUser = false; els.userWelcome.classList.add('hidden'); els.loginBtn.classList.remove('hidden'); els.userControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden'); els.commentInputArea.classList.add('hidden'); els.loginToComment.classList.remove('hidden'); switchView('gallery'); 
+                    updateMobileMenuUI(null);
                 } 
                 renderGallery(); 
             }); 
         }
-        function updateCounts() { if(currentUserId){ const pendingUser = allItems.filter(i => i.userId === currentUserId && i.status === 'pending').length; if(pendingUser > 0) { els.counts.pending.textContent = pendingUser; els.counts.pending.classList.remove('hidden'); } else els.counts.pending.classList.add('hidden'); } const pendingAll = allItems.filter(i => i.status === 'pending').length; if(pendingAll > 0) { els.counts.request.textContent = pendingAll; els.counts.request.classList.remove('hidden'); } else els.counts.request.classList.add('hidden'); }
+        function updateCounts() { 
+            if(currentUserId){ const pendingUser = allItems.filter(i => i.userId === currentUserId && i.status === 'pending').length; 
+                if(pendingUser > 0) { 
+                    els.counts.pending.textContent = pendingUser; 
+                    els.counts.pending.classList.remove('hidden'); 
+                    els.mobilePendingCount.textContent = pendingUser; els.mobilePendingCount.classList.remove('hidden');
+                } else { 
+                    els.counts.pending.classList.add('hidden'); els.mobilePendingCount.classList.add('hidden'); 
+                } 
+            } 
+            const pendingAll = allItems.filter(i => i.status === 'pending').length; 
+            if(pendingAll > 0) { 
+                els.counts.request.textContent = pendingAll; 
+                els.counts.request.classList.remove('hidden'); 
+                els.mobileRequestCount.textContent = pendingAll; els.mobileRequestCount.classList.remove('hidden');
+                els.mobileNavRequest.classList.remove('hidden'); // Show request btn on mobile if needed
+            } else { 
+                els.counts.request.classList.add('hidden'); 
+                els.mobileRequestCount.classList.add('hidden');
+                els.mobileNavRequest.classList.add('hidden');
+            } 
+        }
+
         function notify(msg, type='success') { els.notifMsg.textContent = msg; els.notifIcon.textContent = type==='error'?'⚠️':(msg.includes('komen')?'💬':(msg.includes('Like')?'❤️':(msg.includes('balas')?'↩️':'🔔'))); els.notif.className = `fixed bottom-5 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-[200] flex items-center gap-2 transition-all duration-300 transform translate-y-0 opacity-100 ${type === 'error' ? 'bg-red-600' : 'bg-gray-800'} text-white`; els.notif.classList.remove('hidden'); setTimeout(() => { els.notif.classList.add('translate-y-10', 'opacity-0'); setTimeout(()=>els.notif.classList.add('hidden'), 300); }, 3000); }
         function copyToClipboard(text) { const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); notify('Promp disalin!'); } catch (e) {} document.body.removeChild(t); }
-        els.addForm.onsubmit = window.addItem; els.loginBtn.onclick = () => signInWithPopup(auth, new GoogleAuthProvider()); els.logoutBtn.onclick = () => signOut(auth);
+        
+        els.addForm.onsubmit = window.addItem; 
+        els.loginBtn.onclick = () => signInWithPopup(auth, new GoogleAuthProvider()); 
+        els.mobileLoginBtn.onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
+        els.logoutBtn.onclick = () => signOut(auth);
+        els.mobileLogoutBtn.onclick = () => signOut(auth);
+        
         els.toggleFormBtn.onclick = () => { els.addFormContainer.classList.toggle('hidden'); els.toggleFormBtn.innerHTML = els.addFormContainer.classList.contains('hidden') ? '+' : '&times;'; els.toggleFormBtn.classList.toggle('bg-green-600'); els.toggleFormBtn.classList.toggle('bg-red-600'); };
+        els.mobileAddBtn.onclick = () => { els.addFormContainer.classList.remove('hidden'); window.scrollTo(0,0); };
+        els.mobileMenuBtn.onclick = window.toggleMobileMenu;
+
         els.approveAllBtn.onclick = window.approveAll; els.closeModalBtn.onclick = window.closeModal; els.modal.onclick = (e) => { if(e.target === els.modal) window.closeModal(); }; 
         els.prevBtn.onclick = window.showPrevItem; els.nextBtn.onclick = window.showNextItem;
         
-        // PEMBETULAN: Tambah event listener untuk butang Profile di sini
         if(els.navs.myprofile) {
             els.navs.myprofile.onclick = () => {
                 if(currentUserId) window.showUserProfile(currentUserId);
@@ -639,7 +700,6 @@
         }
 
         Object.keys(els.navs).forEach(key => { 
-            // Elakkan bind switchView pada myprofile sebab ia guna showUserProfile
             if(els.navs[key] && key !== 'myprofile') els.navs[key].onclick = () => switchView(key); 
         });
         document.addEventListener('DOMContentLoaded', init);
