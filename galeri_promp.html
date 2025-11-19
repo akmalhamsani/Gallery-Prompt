@@ -39,7 +39,7 @@
 </head>
 <body class="bg-gray-100 min-h-screen p-6 md:p-10">
 
-    <main class="max-w-full mx-auto"> <!-- Tukar max-w-8xl ke full untuk layout melintang penuh -->
+    <main class="max-w-full mx-auto">
 
         <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 px-4">
@@ -105,17 +105,23 @@
 
         <!-- Controls Bar -->
         <div class="mb-6 mx-4 flex flex-col lg:flex-row justify-between items-center gap-4 bg-white p-3 rounded-xl shadow-sm border border-gray-100">
-            <!-- Kiri: Tab Kategori -->
-            <div class="overflow-x-auto pb-2 lg:pb-0 hide-scrollbar w-full lg:w-auto flex-1">
+            <!-- Kiri: Tab Kategori & User Filter Indicator -->
+            <div class="overflow-x-auto pb-2 lg:pb-0 hide-scrollbar w-full lg:w-auto flex-1 flex items-center gap-3">
                 <div id="category-tabs" class="flex space-x-2 min-w-max px-1 justify-center lg:justify-start">
                     <button class="px-4 py-1.5 rounded-full bg-blue-600 text-white text-xs font-semibold">Semua</button>
                 </div>
+                
+                <!-- User Filter Chip (Muncul bila user filter aktif) -->
+                <button id="user-filter-chip" onclick="window.clearUserFilter()" class="hidden px-4 py-1.5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold border border-purple-300 flex items-center gap-2 hover:bg-purple-200 transition-colors whitespace-nowrap animate-fade-in">
+                    <span class="opacity-70 font-normal">By:</span>
+                    <span id="user-filter-name">User</span>
+                    <span class="text-lg leading-none ml-1 text-purple-400 hover:text-purple-800">&times;</span>
+                </button>
             </div>
 
             <!-- Tengah/Kanan: Slider Saiz Gambar -->
             <div class="flex items-center gap-3 px-4 border-l border-gray-200">
                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                <!-- Slider: Julat min/max disesuaikan -->
                 <input type="range" id="size-slider" min="150" max="600" value="300" class="w-24 sm:w-32 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                 <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
             </div>
@@ -128,7 +134,6 @@
         <h2 id="current-view-title" class="text-xl font-bold text-gray-700 mb-4 border-b pb-2 px-4">Galeri Awam</h2>
 
         <!-- Galeri Container -->
-        <!-- PENTING: flex-wrap dan justify-center untuk layout flow -->
         <div id="gallery-container" class="flex flex-wrap gap-2 px-2 justify-center">
             <p id="loading-message" class="text-gray-500 w-full text-center">Memuatkan...</p>
         </div>
@@ -137,19 +142,13 @@
 
     <!-- Modal Lihat Penuh -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-        <!-- Butang Navigasi Prev -->
-        <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">
-            &lt;
-        </button>
+        <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">&lt;</button>
         
         <div id="modal-content-wrapper" class="bg-white w-full max-w-4xl max-h-[90vh] h-auto rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
-            
             <button id="close-modal-btn" class="absolute top-2 right-2 z-30 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
-            
             <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0">
                 <img id="modal-img" src="" class="max-h-[30vh] md:max-h-[85vh] w-auto object-contain rounded-lg">
             </div>
-            
             <div class="w-full md:w-1/2 p-6 flex flex-col bg-white flex-1 min-h-0">
                 <h3 class="text-lg font-bold text-gray-800 mb-2 border-b pb-2 shrink-0">Promp Penuh</h3>
                 <div class="flex-grow overflow-y-auto pr-2 mb-4 custom-scroll overscroll-contain">
@@ -168,10 +167,7 @@
             </div>
         </div>
         
-        <!-- Butang Navigasi Next -->
-        <button id="next-modal-btn" class="modal-nav-btn right-2 hidden">
-            &gt;
-        </button>
+        <button id="next-modal-btn" class="modal-nav-btn right-2 hidden">&gt;</button>
     </div>
 
     <div id="notification" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-50 flex items-center gap-2">
@@ -183,7 +179,6 @@
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, setDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase Anda (Sila pastikan ini adalah yang sebenar)
         const firebaseConfig = {
             apiKey: "AIzaSyCpOw2nHuxHpKfkDxZzAe4nyqXrmhZZbSM",
             authDomain: "galeri-promp-saya.firebaseapp.com",
@@ -197,9 +192,8 @@
 
         let db, auth, galleryRef, categoriesRef;
         let allItems = [], currentUserId = null, isSuperUser = false;
-        let currentView = 'gallery', currentCategory = 'all';
+        let currentView = 'gallery', currentCategory = 'all', currentUserIdFilter = null; // Added User Filter State
         
-        // State baru untuk Navigasi Modal
         let modalItems = [];
         let currentModalIndex = -1;
         let touchstartX = 0;
@@ -215,6 +209,8 @@
             submitBtn: document.getElementById('submit-button'),
             gallery: document.getElementById('gallery-container'),
             catTabs: document.getElementById('category-tabs'),
+            userFilterChip: document.getElementById('user-filter-chip'), // NEW
+            userFilterName: document.getElementById('user-filter-name'), // NEW
             catSelect: document.getElementById('category-select'),
             viewTitle: document.getElementById('current-view-title'),
             approveAllBtn: document.getElementById('approve-all-btn'),
@@ -249,6 +245,34 @@
             document.documentElement.style.setProperty('--img-height', `${size}px`);
         });
 
+        // --- CATEGORY FILTER ---
+        window.filterByCategory = (categoryName) => {
+            currentCategory = categoryName;
+            Array.from(els.catTabs.children).forEach(btn => {
+                const btnCat = btn.textContent === 'Semua' ? 'all' : btn.textContent;
+                const isActive = btnCat === categoryName;
+                btn.className = isActive 
+                    ? 'px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border bg-blue-600 text-white border-blue-600' 
+                    : 'px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border bg-white text-gray-600 border-gray-300 hover:bg-gray-50';
+                if(isActive) btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            });
+            renderGallery();
+        };
+
+        // --- USER FILTER (NEW) ---
+        window.filterByUser = (userId, userName) => {
+            currentUserIdFilter = userId;
+            els.userFilterName.textContent = userName || 'User';
+            els.userFilterChip.classList.remove('hidden');
+            renderGallery();
+        };
+
+        window.clearUserFilter = () => {
+            currentUserIdFilter = null;
+            els.userFilterChip.classList.add('hidden');
+            renderGallery();
+        };
+
         function switchView(viewName) {
             currentView = viewName;
             Object.values(els.navs).forEach(btn => btn.classList.remove('active'));
@@ -266,7 +290,15 @@
         }
 
         function renderGallery() {
-            let filtered = allItems.filter(item => currentCategory === 'all' || item.category === currentCategory);
+            // Filter Chain: Category -> User -> View Mode
+            let filtered = allItems.filter(item => {
+                const itemCat = item.category || 'Umum';
+                const catMatch = currentCategory === 'all' || itemCat === currentCategory;
+                // NEW: User Filter Match
+                const userMatch = !currentUserIdFilter || item.userId === currentUserIdFilter;
+                return catMatch && userMatch;
+            });
+            
             let itemsToShow = [];
 
             if (currentView === 'gallery') itemsToShow = filtered.filter(item => item.status === 'approved' || !item.status);
@@ -310,7 +342,7 @@
                 const viewBtn = `<button onclick="event.stopPropagation(); window.openModal('${item.id}')" class="view-btn absolute bottom-2 right-2 z-20 bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black backdrop-blur-sm" title="Lihat Penuh"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>`;
 
                 card.onclick = (e) => {
-                    if (!e.target.closest('button')) copyToClipboard(item.prompt);
+                    if (!e.target.closest('button') && !e.target.closest('span[onclick]')) copyToClipboard(item.prompt);
                 };
 
                 card.innerHTML = `
@@ -318,8 +350,10 @@
                         
                         <!-- Floating Header (Kategori & By: NAMA) -->
                         <div class="absolute top-0 left-0 right-0 p-2 bg-black/50 flex justify-between items-center gap-2 z-10">
-                            <span class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded uppercase tracking-wide truncate max-w-[120px]">${item.category || 'Umum'}</span>
-                            <span class="text-[10px] text-white/80 truncate">By: ${item.userName || 'User'}</span>
+                            <span onclick="event.stopPropagation(); window.filterByCategory('${item.category || 'Umum'}')" class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded uppercase tracking-wide truncate max-w-[120px] cursor-pointer hover:bg-blue-200 transition-colors" title="Tapis ikut kategori ini">${item.category || 'Umum'}</span>
+                            
+                            <!-- USER FILTERABLE (NEW) -->
+                            <span onclick="event.stopPropagation(); window.filterByUser('${item.userId}', '${item.userName || 'User'}')" class="text-[10px] text-white/90 truncate cursor-pointer hover:text-purple-300 hover:underline transition-colors" title="Lihat semua dari pengguna ini">By: ${item.userName || 'User'}</span>
                         </div>
 
                         ${deleteBtn}
@@ -341,40 +375,36 @@
             for(let i=0; i<8; i++) els.gallery.appendChild(document.createElement('div')).className = 'flex-grow h-0 p-0 m-0 opacity-0 border-0';
         }
         
-        // Fungsi untuk mengemas kini kandungan modal
         function updateModalContent(index) {
             if (index < 0 || index >= modalItems.length) return;
             const item = modalItems[index];
             currentModalIndex = index;
-            
             els.modalImg.src = item.imageUrl;
             els.modalPrompt.textContent = item.prompt;
             els.modalCategory.textContent = item.category || 'Umum';
             els.modalUploader.textContent = `Uploaded by: ${item.userName || 'User'}`;
             els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt);
-            
-            // Tunjukkan/Sembunyikan butang navigasi
             els.prevBtn.classList.toggle('hidden', currentModalIndex === 0);
             els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1);
         }
 
-        // --- MODAL NAVIGATION ---
         window.openModal = (id) => {
-            // 1. Dapatkan senarai item yang sedang dipaparkan di galeri
-            let filtered = allItems.filter(item => currentCategory === 'all' || item.category === currentCategory);
+            // Apply same filters for modal navigation
+            let filtered = allItems.filter(item => {
+                const itemCat = item.category || 'Umum';
+                const catMatch = currentCategory === 'all' || itemCat === currentCategory;
+                const userMatch = !currentUserIdFilter || item.userId === currentUserIdFilter;
+                return catMatch && userMatch;
+            });
             
             if (currentView === 'gallery') modalItems = filtered.filter(item => item.status === 'approved' || !item.status);
             else if (currentView === 'myprompt') modalItems = filtered.filter(item => item.userId === currentUserId);
             else if (currentView === 'pending') modalItems = filtered.filter(item => item.userId === currentUserId && item.status === 'pending');
             else if (currentView === 'request') modalItems = filtered.filter(item => item.status === 'pending');
             
-            // 2. Cari indeks item yang diklik
             const initialIndex = modalItems.findIndex(i => i.id === id);
             if (initialIndex === -1) return;
-
-            // 3. Paparkan modal dan kemas kini kandungan
             updateModalContent(initialIndex);
-            
             els.modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         };
@@ -386,42 +416,16 @@
             modalItems = [];
         };
         
-        // Fungsi navigasi
-        window.showPrevItem = () => {
-            if (currentModalIndex > 0) {
-                updateModalContent(currentModalIndex - 1);
-            }
-        };
+        window.showPrevItem = () => { if (currentModalIndex > 0) updateModalContent(currentModalIndex - 1); };
+        window.showNextItem = () => { if (currentModalIndex < modalItems.length - 1) updateModalContent(currentModalIndex + 1); };
 
-        window.showNextItem = () => {
-            if (currentModalIndex < modalItems.length - 1) {
-                updateModalContent(currentModalIndex + 1);
-            }
-        };
-
-        // --- SWIPE LOGIC ---
-        els.modalImageArea.addEventListener('touchstart', (e) => {
-            touchstartX = e.changedTouches[0].screenX;
-        }, false);
-
+        els.modalImageArea.addEventListener('touchstart', (e) => { touchstartX = e.changedTouches[0].screenX; }, false);
         els.modalImageArea.addEventListener('touchend', (e) => {
-            const touchendX = e.changedTouches[0].screenX;
-            const diffX = touchendX - touchstartX;
-            const swipeThreshold = 50; // Jarak minimum untuk dikira swipe
-
-            if (Math.abs(diffX) > swipeThreshold) {
-                if (diffX < 0) {
-                    // Leret ke kiri -> Tunjukkan item seterusnya
-                    window.showNextItem();
-                } else {
-                    // Leret ke kanan -> Tunjukkan item sebelumnya
-                    window.showPrevItem();
-                }
-            }
-            touchstartX = 0; // Reset
+            const diffX = e.changedTouches[0].screenX - touchstartX;
+            if (Math.abs(diffX) > 50) { if (diffX < 0) window.showNextItem(); else window.showPrevItem(); }
+            touchstartX = 0;
         }, false);
         
-        // --- FIREBASE ACTIONS (Tidak Berubah) ---
         window.addItem = async (e) => {
             e.preventDefault();
             if (!currentUserId) return notify("Sila log masuk.", 'error');
@@ -458,7 +462,6 @@
             try { await batch.commit(); notify(`${pendingItems.length} item berjaya diluluskan!`); } catch(err) { notify("Gagal approve semua.", 'error'); }
         };
 
-        // --- SETUP ---
         async function init() {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app); auth = getAuth(app);
@@ -472,11 +475,7 @@
                     const btn = document.createElement('button');
                     btn.textContent = cat === 'all' ? 'Semua' : cat;
                     btn.className = `px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border ${currentCategory === cat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'}`;
-                    btn.onclick = () => {
-                        currentCategory = cat;
-                        Array.from(els.catTabs.children).forEach(b => b.className = b.textContent === (cat === 'all' ? 'Semua' : cat) ? 'px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border bg-blue-600 text-white border-blue-600' : 'px-4 py-1.5 rounded-full text-xs font-semibold transition-colors border bg-white text-gray-600 border-gray-300 hover:bg-gray-50');
-                        renderGallery();
-                    };
+                    btn.onclick = () => window.filterByCategory(cat);
                     els.catTabs.appendChild(btn);
                     if(cat !== 'all') els.catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
                 });
