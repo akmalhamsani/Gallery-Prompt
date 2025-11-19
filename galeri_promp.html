@@ -42,10 +42,9 @@
                     <div class="flex items-center gap-2 mr-2">
                         <button id="nav-gallery" class="nav-btn active px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Galeri</button>
                         <button id="nav-liked" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Liked ❤️</button>
-                        <!-- Butang ke Profil Sendiri -->
-                        <button id="nav-myprofile" onclick="window.showUserProfile(currentUserId)" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Profil Saya</button>
+                        <button id="nav-myprofile" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors">Profil Saya</button>
                         
-                        <button id="nav-myprompt" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">My Prompt</button> <!-- Hidden, now part of profile -->
+                        <button id="nav-myprompt" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">My Prompt</button>
                         
                         <button id="nav-pending" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden">Pending <span id="pending-count-user" class="ml-1 bg-red-500 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
                         <button id="nav-request" class="nav-btn px-4 py-2 rounded-lg text-sm font-semibold transition-colors hidden border-yellow-500 text-yellow-700">Requested <span id="request-count-admin" class="ml-1 bg-red-600 text-white text-[10px] px-1.5 rounded-full hidden">0</span></button>
@@ -131,12 +130,18 @@
     <!-- Modal Lihat Penuh -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">&lt;</button>
+        
         <div id="modal-content-wrapper" class="bg-white w-full max-w-5xl h-[95vh] md:h-[90vh] rounded-xl shadow-2xl relative animate-fade-in flex flex-col md:flex-row overflow-hidden">
+            <!-- Close Button -->
             <button id="close-modal-btn" class="sticky top-2 right-2 md:absolute z-50 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors ml-auto md:ml-0 mb-2 md:mb-0">&times;</button>
+            
+            <!-- Scroll Container Mobile -->
             <div id="modal-mobile-scroll-container" class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-hidden custom-scroll relative">
+                <!-- Gambar -->
                 <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0 h-auto min-h-[300px] md:h-full relative">
                     <img id="modal-img" src="" class="w-full h-auto md:w-auto md:max-h-full md:max-w-full md:object-contain rounded-lg">
                 </div>
+                <!-- Info -->
                 <div class="w-full md:w-1/2 flex flex-col bg-white md:h-full h-auto border-l border-gray-200">
                     <div class="p-4 border-b border-gray-100 shrink-0">
                         <h3 class="text-lg font-bold text-gray-800 mb-1">Maklumat Promp</h3>
@@ -145,17 +150,41 @@
                             <span id="modal-uploader" class="cursor-pointer hover:text-blue-600 hover:underline"></span> <!-- Clickable Uploader -->
                         </div>
                     </div>
+                    <!-- Content Text -->
                     <div id="modal-text-content" class="p-4 bg-gray-50 pb-40 md:pb-4 md:flex-grow md:overflow-y-auto custom-scroll">
-                        <div class="mb-6"><h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Promp Penuh</h4><p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white p-3 rounded border shadow-sm select-text"></p></div>
-                        <div><h4 class="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">Komen (<span id="comment-count">0</span>)</h4><div id="comments-list" class="space-y-3"></div></div>
+                        <div class="mb-6">
+                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Promp Penuh</h4>
+                            <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white p-3 rounded border shadow-sm select-text"></p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
+                                Komen (<span id="comment-count">0</span>)
+                            </h4>
+                            <div id="comments-list" class="space-y-3"></div>
+                        </div>
                     </div>
+                    <!-- Footer Mobile Sticky / Desktop Static -->
                     <div class="p-3 bg-white border-t border-gray-200 fixed bottom-0 left-0 w-full z-[60] md:static md:w-full shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
                         <div class="flex gap-2 mb-3 max-w-5xl mx-auto md:max-w-none px-2 md:px-0">
-                            <button id="modal-like-btn" class="flex-1 bg-gray-50 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200"><svg id="modal-heart-icon" class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><span id="modal-like-count">0</span></button>
-                            <button id="modal-copy-btn" class="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>Salin Promp</button>
+                            <button id="modal-like-btn" class="flex-1 bg-gray-50 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200">
+                                <svg id="modal-heart-icon" class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                <span id="modal-like-count">0</span>
+                            </button>
+                            <button id="modal-copy-btn" class="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                Salin Promp
+                            </button>
                         </div>
-                        <div id="comment-input-area" class="relative max-w-5xl mx-auto md:max-w-none px-2 md:px-0"><input type="text" id="comment-input" placeholder="Tulis komen..." class="w-full p-3 pr-10 bg-gray-100 border-0 rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner" onkeypress="if(event.key==='Enter') window.postComment()"><button onclick="window.postComment()" class="absolute right-4 md:right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg></button></div>
-                        <div id="login-to-comment" class="hidden text-center py-2 bg-gray-50 rounded-lg text-xs text-gray-500"><a href="#" onclick="document.getElementById('login-btn').click(); document.getElementById('view-modal').click();" class="text-blue-600 underline">Log masuk</a> untuk komen</div>
+                        <div id="comment-input-area" class="relative max-w-5xl mx-auto md:max-w-none px-2 md:px-0">
+                            <input type="text" id="comment-input" placeholder="Tulis komen..." class="w-full p-3 pr-10 bg-gray-100 border-0 rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner" onkeypress="if(event.key==='Enter') window.postComment()">
+                            <button onclick="window.postComment()" class="absolute right-4 md:right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800 p-1">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                            </button>
+                        </div>
+                        <div id="login-to-comment" class="hidden text-center py-2 bg-gray-50 rounded-lg text-xs text-gray-500">
+                            <a href="#" onclick="document.getElementById('login-btn').click(); document.getElementById('view-modal').click();" class="text-blue-600 underline">Log masuk</a> untuk komen
+                        </div>
                     </div>
                 </div>
             </div>
@@ -245,7 +274,14 @@
             notif: document.getElementById('notification'),
             notifMsg: document.getElementById('notif-msg'),
             notifIcon: document.getElementById('notif-icon'),
-            navs: { gallery: document.getElementById('nav-gallery'), liked: document.getElementById('nav-liked'), myprompt: document.getElementById('nav-myprompt'), pending: document.getElementById('nav-pending'), request: document.getElementById('nav-request') },
+            navs: { 
+                gallery: document.getElementById('nav-gallery'), 
+                liked: document.getElementById('nav-liked'), 
+                myprofile: document.getElementById('nav-myprofile'), // Tambah rujukan butang profile
+                myprompt: document.getElementById('nav-myprompt'), 
+                pending: document.getElementById('nav-pending'), 
+                request: document.getElementById('nav-request') 
+            },
             counts: { pending: document.getElementById('pending-count-user'), request: document.getElementById('request-count-admin') }
         };
 
@@ -366,7 +402,8 @@
 
         // --- EXISTING LOGIC (Modified for Profile Integration) ---
         
-        function switchView(viewName) {
+        // FUNGSI INI MESTI DILEKATKAN KE WINDOW SUPAYA HTML ONCLICK BOLEH AKSES
+        window.switchView = function(viewName) {
             currentView = viewName;
             profileUserId = null; // Reset profile view
 
@@ -471,7 +508,7 @@
                 els.commentInput.value = '';
                 const commentsRef = collection(db, `${galleryRef.path}/${item.id}/comments`);
                 await addDoc(commentsRef, commentData);
-                scrollToBottomComments(); 
+                scrollToBottomComments(); // AUTO SCROLL
                 if (item.userId && item.userId !== currentUserId) {
                     const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${item.userId}/notifications`);
                     addDoc(notifRef, { type: 'comment', fromName: commentData.userName, itemId: item.id, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error);
@@ -592,7 +629,19 @@
         els.toggleFormBtn.onclick = () => { els.addFormContainer.classList.toggle('hidden'); els.toggleFormBtn.innerHTML = els.addFormContainer.classList.contains('hidden') ? '+' : '&times;'; els.toggleFormBtn.classList.toggle('bg-green-600'); els.toggleFormBtn.classList.toggle('bg-red-600'); };
         els.approveAllBtn.onclick = window.approveAll; els.closeModalBtn.onclick = window.closeModal; els.modal.onclick = (e) => { if(e.target === els.modal) window.closeModal(); }; 
         els.prevBtn.onclick = window.showPrevItem; els.nextBtn.onclick = window.showNextItem;
-        Object.keys(els.navs).forEach(key => { if(els.navs[key]) els.navs[key].onclick = () => switchView(key); });
+        
+        // PEMBETULAN: Tambah event listener untuk butang Profile di sini
+        if(els.navs.myprofile) {
+            els.navs.myprofile.onclick = () => {
+                if(currentUserId) window.showUserProfile(currentUserId);
+                else notify("Sila log masuk dahulu.", 'error');
+            };
+        }
+
+        Object.keys(els.navs).forEach(key => { 
+            // Elakkan bind switchView pada myprofile sebab ia guna showUserProfile
+            if(els.navs[key] && key !== 'myprofile') els.navs[key].onclick = () => switchView(key); 
+        });
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
