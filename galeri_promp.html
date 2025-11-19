@@ -97,14 +97,11 @@
         <div id="modal-content-wrapper" class="bg-white w-full max-w-5xl max-h-[95vh] h-[90vh] rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
             <button id="close-modal-btn" class="absolute top-2 right-2 z-30 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
             
-            <!-- Bahagian Gambar -->
             <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0 md:h-full h-1/2 relative">
                 <img id="modal-img" src="" class="max-h-full max-w-full object-contain rounded-lg">
             </div>
             
-            <!-- Bahagian Maklumat & Komen -->
             <div class="w-full md:w-1/2 flex flex-col bg-white md:h-full h-1/2 border-l border-gray-200">
-                
                 <div class="p-4 border-b border-gray-100">
                     <h3 class="text-lg font-bold text-gray-800 mb-1">Maklumat Promp</h3>
                     <div class="flex justify-between text-xs text-gray-500">
@@ -180,8 +177,10 @@
         let currentView = 'gallery', currentCategory = 'all', currentUserIdFilter = null;
         let modalItems = [], currentModalIndex = -1, touchstartX = 0;
         let commentsUnsubscribe = null;
+        let replyUnsubscribes = {}; // Simpan unsubscribe listeners untuk replies
 
         const els = {
+            // ... elemen sedia ada ...
             loginBtn: document.getElementById('login-btn'),
             userControls: document.getElementById('user-controls'),
             userWelcome: document.getElementById('user-welcome'),
@@ -226,9 +225,108 @@
 
         els.sizeSlider.addEventListener('input', (e) => document.documentElement.style.setProperty('--img-height', `${e.target.value}px`));
 
-        // --- COMMENT FUNCTIONS ---
+        // --- REPLIES FUNCTIONALITY ---
+        
+        window.toggleReplyForm = (commentId) => {
+            if (!currentUserId) return notify("Sila log masuk untuk membalas.", 'error');
+            const form = document.getElementById(`reply-form-${commentId}`);
+            form.classList.toggle('hidden');
+            if (!form.classList.contains('hidden')) {
+                document.getElementById(`reply-input-${commentId}`).focus();
+            }
+        };
+
+        window.postReply = async (itemId, commentId, commentOwnerId) => {
+            const input = document.getElementById(`reply-input-${commentId}`);
+            const text = input.value.trim();
+            if (!text) return;
+            
+            const user = auth.currentUser;
+            const replyData = {
+                text: text,
+                userId: currentUserId,
+                userName: (user.displayName || 'User').split(' ')[0],
+                timestamp: Date.now(),
+                likes: []
+            };
+
+            try {
+                input.value = '';
+                window.toggleReplyForm(commentId); // Tutup form
+                
+                const repliesRef = collection(db, `${galleryRef.path}/${itemId}/comments/${commentId}/replies`);
+                await addDoc(repliesRef, replyData);
+                
+                // Notifikasi kepada pemilik komen asal
+                if (commentOwnerId && commentOwnerId !== currentUserId) {
+                    const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${commentOwnerId}/notifications`);
+                    addDoc(notifRef, {
+                        type: 'reply_comment', 
+                        fromName: replyData.userName, 
+                        itemId: itemId, 
+                        promptSnippet: text.substring(0, 20) + '...', 
+                        timestamp: Date.now(), 
+                        read: false 
+                    }).catch(console.error);
+                }
+            } catch (err) {
+                console.error("Reply error:", err);
+                notify("Gagal menghantar balasan.", 'error');
+            }
+        };
+
+        window.deleteReply = async (itemId, commentId, replyId) => {
+            if(!confirm("Padam balasan ini?")) return;
+            try {
+                await deleteDoc(doc(db, `${galleryRef.path}/${itemId}/comments/${commentId}/replies/${replyId}`));
+                notify("Balasan dipadam.");
+            } catch(err) { notify("Gagal.", 'error'); }
+        };
+
+        // Fungsi render balasan (Nested Listener)
+        function listenToReplies(itemId, commentId, container) {
+            // Bersihkan listener lama jika ada
+            if (replyUnsubscribes[commentId]) replyUnsubscribes[commentId]();
+            
+            const repliesRef = collection(db, `${galleryRef.path}/${itemId}/comments/${commentId}/replies`);
+            const q = query(repliesRef, orderBy('timestamp', 'asc'));
+            
+            replyUnsubscribes[commentId] = onSnapshot(q, (snapshot) => {
+                container.innerHTML = ''; // Reset container balasan
+                
+                snapshot.forEach(docSnap => {
+                    const r = docSnap.data();
+                    const rid = docSnap.id;
+                    const isMyReply = currentUserId && r.userId === currentUserId;
+                    const canDelete = isMyReply || isSuperUser;
+                    const timeAgo = dayjs(r.timestamp).fromNow();
+                    
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-50 p-2 rounded border-l-2 border-gray-300 text-xs mt-1 group';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start mb-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-700">${r.userName || 'User'}</span>
+                                <span class="text-[9px] text-gray-400">${timeAgo}</span>
+                            </div>
+                            ${canDelete ? `<button onclick="window.deleteReply('${itemId}', '${commentId}', '${rid}')" class="text-gray-300 hover:text-red-500" title="Padam">&times;</button>` : ''}
+                        </div>
+                        <p class="text-gray-600 leading-tight">${r.text}</p>
+                    `;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+
+        // --- COMMENT FUNCTIONS (UPDATED) ---
         function listenToComments(itemId) {
             if (commentsUnsubscribe) commentsUnsubscribe();
+            
+            // Bersihkan semua reply listeners lama
+            Object.values(replyUnsubscribes).forEach(unsubscribe => unsubscribe());
+            replyUnsubscribes = {};
+
             const commentsRef = collection(db, `${galleryRef.path}/${itemId}/comments`);
             const q = query(commentsRef, orderBy('timestamp', 'asc'));
 
@@ -237,7 +335,7 @@
                 els.commentCount.textContent = snapshot.size;
 
                 if (snapshot.empty) {
-                    els.commentsList.innerHTML = '<p class="text-center text-gray-400 text-sm italic py-4">Tiada komen lagi. Jadilah yang pertama!</p>';
+                    els.commentsList.innerHTML = '<p class="text-center text-gray-400 text-sm italic py-4">Tiada komen lagi.</p>';
                     return;
                 }
 
@@ -247,7 +345,6 @@
                     const isMyComment = currentUserId && c.userId === currentUserId;
                     const canDelete = isMyComment || isSuperUser;
                     const timeAgo = dayjs(c.timestamp).fromNow();
-                    
                     const likes = c.likes || [];
                     const isLiked = currentUserId && likes.includes(currentUserId);
                     const likeCount = likes.length;
@@ -261,20 +358,36 @@
                                 <span class="text-[10px] text-gray-400">${timeAgo}</span>
                             </div>
                             <div class="flex items-center gap-2">
-                                <!-- Like Komen -->
-                                <button onclick="window.toggleCommentLike('${itemId}', '${cid}', '${c.userId}')" class="flex items-center gap-1 text-gray-400 hover:text-pink-500 transition-colors ${isLiked ? 'text-pink-500' : ''}" title="Like Komen">
+                                <button onclick="window.toggleCommentLike('${itemId}', '${cid}', '${c.userId}')" class="flex items-center gap-1 text-gray-400 hover:text-pink-500 transition-colors ${isLiked ? 'text-pink-500' : ''}" title="Like">
                                     <span class="text-[10px] font-bold">${likeCount > 0 ? likeCount : ''}</span>
                                     <svg class="w-3.5 h-3.5 ${isLiked ? 'fill-current' : 'fill-none'} stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                                 </button>
-                                <!-- Delete Komen -->
-                                ${canDelete ? `<button onclick="window.deleteComment('${itemId}', '${cid}')" class="text-gray-300 hover:text-red-500 transition-colors" title="Padam Komen">&times;</button>` : ''}
+                                <button onclick="window.toggleReplyForm('${cid}')" class="text-gray-400 hover:text-blue-500 transition-colors" title="Balas">
+                                    <svg class="w-3.5 h-3.5 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                                </button>
+                                ${canDelete ? `<button onclick="window.deleteComment('${itemId}', '${cid}')" class="text-gray-300 hover:text-red-500 transition-colors" title="Padam">&times;</button>` : ''}
                             </div>
                         </div>
-                        <p class="text-gray-600 leading-snug">${c.text}</p>
+                        <p class="text-gray-600 leading-snug mb-2">${c.text}</p>
+                        
+                        <!-- Container untuk Replies -->
+                        <div id="replies-container-${cid}" class="ml-2 pl-2 border-l-2 border-gray-100 space-y-2"></div>
+                        
+                        <!-- Form Balas (Hidden) -->
+                        <div id="reply-form-${cid}" class="hidden mt-2 flex gap-2">
+                             <input type="text" id="reply-input-${cid}" placeholder="Balas..." class="flex-1 p-1.5 text-xs border rounded bg-gray-50 focus:ring-1 focus:ring-blue-500">
+                             <button onclick="window.postReply('${itemId}', '${cid}', '${c.userId}')" class="text-blue-600 text-xs font-bold px-2">Hantar</button>
+                        </div>
                     `;
                     els.commentsList.appendChild(div);
-                    els.commentsList.parentElement.scrollTop = els.commentsList.parentElement.scrollHeight;
+                    
+                    // Setup listener untuk balasan bagi komen ini
+                    const repliesContainer = div.querySelector(`#replies-container-${cid}`);
+                    listenToReplies(itemId, cid, repliesContainer);
                 });
+                
+                // Scroll ke bawah hanya pada load pertama (atau boleh disable jika mengganggu)
+                // els.commentsList.parentElement.scrollTop = els.commentsList.parentElement.scrollHeight;
             });
         }
 
@@ -308,28 +421,7 @@
         window.toggleCommentLike = async (itemId, commentId, commentOwnerId) => {
             if (!currentUserId) return notify("Log masuk untuk like.", 'error');
             const commentRef = doc(db, `${galleryRef.path}/${itemId}/comments/${commentId}`);
-            // Kita perlu baca dulu untuk tahu status like semasa (Firestore arrayUnion toggle workaround)
-            // Tapi untuk UI pantas, kita guna try-catch optimistik atau semak state UI. 
-            // Cara selamat: Guna transaction atau semak di UI (kita ada data snapshot).
-            // Di sini kita akan cuba remove dulu, kalau tak berjaya bermakna belum like (add).
-            // ATAU, lebih mudah: kita dah ada data real-time di UI, tapi fungsi ini dipanggil dari onclick.
-            
-            // Untuk simplisiti dan kecekapan, kita guna update terus berdasarkan apa yg kita nampak di UI.
-            // TAPI, arrayUnion/Remove tak boleh toggle automatik.
-            // Kita buat cara mudah: Hantar kedua-duanya? Tak boleh.
-            // Kita fetch dokumen sekejap (kecil saja).
-            
             try {
-                // Dapatkan data komen secara terus dari elemen UI atau fetch ringan?
-                // Kita guna trick: ArrayUnion. Jika user dah ada, tak effect.
-                // Kita perlu tahu status. Di 'listenToComments', kita tahu 'isLiked'.
-                // Kita ubah fungsi di atas untuk pass status? Tidak perlu, kita fetch doc.
-                // Sebenarnya, kita boleh guna butang toggle di UI untuk pass boolean.
-                // Mari kita ubah suai HTML di listenToComments untuk pass boolean 'isLiked'.
-                // TAPI HTML string susah nak update real-time variable. 
-                // JADI, kita buat transaction kecil.
-                
-                // Transaction terlalu kompleks untuk demo ini. Kita buat Get -> Update.
                 const snap = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(m=>m.getDoc(commentRef));
                 if(snap.exists()) {
                     const c = snap.data();
@@ -338,7 +430,6 @@
                         await updateDoc(commentRef, { likes: arrayRemove(currentUserId) });
                     } else {
                         await updateDoc(commentRef, { likes: arrayUnion(currentUserId) });
-                        // Notif Like Komen
                         if(commentOwnerId && commentOwnerId !== currentUserId) {
                              const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${commentOwnerId}/notifications`);
                              const user = auth.currentUser;
@@ -488,7 +579,7 @@
             if (initialIndex === -1) return;
             updateModalContent(initialIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden';
         };
-        window.closeModal = () => { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; if(commentsUnsubscribe) commentsUnsubscribe(); };
+        window.closeModal = () => { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; if(commentsUnsubscribe) commentsUnsubscribe(); Object.values(replyUnsubscribes).forEach(un=>un()); replyUnsubscribes={}; };
         window.showPrevItem = () => { if (currentModalIndex > 0) updateModalContent(currentModalIndex - 1); };
         window.showNextItem = () => { if (currentModalIndex < modalItems.length - 1) updateModalContent(currentModalIndex + 1); };
         els.modalImageArea.addEventListener('touchstart', (e) => { touchstartX = e.changedTouches[0].screenX; }, false);
@@ -517,7 +608,8 @@
                             let msg = "Notifikasi baru";
                             if(data.type === 'like') msg = `❤️ ${data.fromName} menyukai promp anda`;
                             else if(data.type === 'comment') msg = `💬 ${data.fromName} mengomen promp anda`;
-                            else if(data.type === 'like_comment') msg = `❤️ ${data.fromName} menyukai komen anda: "${data.promptSnippet}"`;
+                            else if(data.type === 'like_comment') msg = `❤️ ${data.fromName} menyukai komen anda`;
+                            else if(data.type === 'reply_comment') msg = `↩️ ${data.fromName} membalas komen anda`;
                             notify(msg, 'success');
                             await deleteDoc(change.doc.ref); 
                         }
@@ -575,7 +667,7 @@
         }
 
         function notify(msg, type='success') {
-            els.notifMsg.textContent = msg; els.notifIcon.textContent = type==='error'?'⚠️':(msg.includes('komen')?'💬':(msg.includes('Like')?'❤️':'🔔'));
+            els.notifMsg.textContent = msg; els.notifIcon.textContent = type==='error'?'⚠️':(msg.includes('komen')?'💬':(msg.includes('Like')?'❤️':(msg.includes('balas')?'↩️':'🔔')));
             els.notif.className = `fixed bottom-5 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-[200] flex items-center gap-2 transition-all duration-300 transform translate-y-0 opacity-100 ${type === 'error' ? 'bg-red-600' : 'bg-gray-800'} text-white`;
             els.notif.classList.remove('hidden'); setTimeout(() => { els.notif.classList.add('translate-y-10', 'opacity-0'); setTimeout(()=>els.notif.classList.add('hidden'), 300); }, 3000);
         }
