@@ -254,65 +254,65 @@
             itemsToShow.forEach(item => {
                 const card = document.createElement('div');
                 // PENTING: flex-grow benarkan kad mengembang mengisi ruang kosong dalam baris
-                // flex-shrink-0 dibuang supaya boleh shrink sikit jika perlu, tapi biasanya grow yang penting
                 card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative flex-grow hover:shadow-xl transition-shadow select-none overflow-hidden';
                 
                 const isOwner = currentUserId && item.userId === currentUserId;
                 const status = item.status || 'approved';
                 const isPending = status === 'pending';
                 const canDelete = isOwner || isSuperUser;
+                
                 const deleteBtn = canDelete ? 
-                    `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-2 right-2 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : '';
+                    `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-1 right-1 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : '';
 
                 let approveBtn = '';
                 if (isSuperUser && isPending && currentView === 'request') {
-                    approveBtn = `<button onclick="event.stopPropagation(); window.approveItem('${item.id}')" class="approve-btn absolute top-2 left-2 z-20 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:bg-green-700 flex items-center gap-1">✓ Approve</button>`;
+                    // Letak butang approve di sebelah kiri atas
+                    approveBtn = `<button onclick="event.stopPropagation(); window.approveItem('${item.id}')" class="approve-btn absolute top-1 left-1 z-20 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:bg-green-700 flex items-center gap-1">✓ Approve</button>`;
                 }
 
                 let statusBadge = '';
-                if (currentView === 'myprompt' || currentView === 'pending') {
+                // Hanya tunjuk badge status jika BUKAN super user (kerana super user ada approve button)
+                if (!isSuperUser && (currentView === 'myprompt' || currentView === 'pending')) {
                     const badgeColor = isPending ? 'bg-yellow-500' : 'bg-green-500';
                     const badgeText = isPending ? 'Pending' : 'Approved';
-                    statusBadge = `<span class="absolute top-2 left-2 z-10 ${badgeColor} text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm uppercase font-bold tracking-wider opacity-90">${badgeText}</span>`;
+                    statusBadge = `<span class="absolute top-1 left-1 z-10 ${badgeColor} text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm uppercase font-bold tracking-wider opacity-90">${badgeText}</span>`;
                 }
 
-                const viewBtn = `<button onclick="event.stopPropagation(); window.openModal('${item.id}')" class="view-btn absolute bottom-[60px] right-2 z-20 bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black backdrop-blur-sm" title="Lihat Penuh"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>`;
+                const viewBtn = `<button onclick="event.stopPropagation(); window.openModal('${item.id}')" class="view-btn absolute bottom-2 right-2 z-20 bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black backdrop-blur-sm" title="Lihat Penuh"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>`;
 
                 card.onclick = (e) => {
                     if (!e.target.closest('button')) copyToClipboard(item.prompt);
                 };
 
-                // PENTING:
-                // dynamic-img set ketinggian ikut slider.
-                // min-w-full pastikan gambar melebar jika kad di-stretch oleh flex-grow.
-                // object-cover pastikan gambar penuh (tak penyek) walaupun aspect ratio lari sikit.
+                // --- STRUKTUR BARU KAD (Terapung sepenuhnya) ---
                 card.innerHTML = `
-                    ${deleteBtn}
-                    ${approveBtn}
-                    ${statusBadge}
-                    ${viewBtn}
-                    <div class="relative rounded-t-lg overflow-hidden">
-                        <img src="${item.imageUrl}" class="dynamic-img w-auto min-w-full object-cover block transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=Error'">
+                    
+                    <!-- IMAGE SECTION (Satu-satunya bahagian kad) -->
+                    <div class="relative overflow-hidden w-full h-full">
                         
-                        <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/60 to-transparent pointer-events-none">
-                            <p class="text-sm text-white line-clamp-1 font-medium">${item.prompt}</p>
+                        <!-- Floating Header (Kategori & By: NAMA) -->
+                        <div class="absolute top-0 left-0 right-0 p-2 bg-black/50 flex justify-between items-center gap-2 z-10">
+                            <span class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded uppercase tracking-wide truncate max-w-[120px]">${item.category || 'Umum'}</span>
+                            <span class="text-[10px] text-white/80 truncate">By: ${item.userName || 'User'}</span>
                         </div>
 
-                        <div class="absolute inset-0 bg-black/80 text-white p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden z-10 pointer-events-none flex flex-col">
-                            <h4 class="font-bold mb-1 text-xs text-gray-400 uppercase">Promp Penuh:</h4>
-                            <p class="text-sm leading-relaxed line-clamp-[10] text-gray-200">${item.prompt}</p>
-                            <p class="mt-auto text-[10px] text-center text-gray-400 italic">(Klik kad untuk salin, atau mata untuk lihat)</p>
+                        ${deleteBtn}
+                        ${approveBtn}
+                        ${statusBadge}
+                        ${viewBtn}
+                        
+                        <img src="${item.imageUrl}" class="dynamic-img w-auto min-w-full object-cover block transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=Error'">
+                        
+                        <!-- Floating Footer (Promp Ringkas) -->
+                        <div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none z-10">
+                            <p class="text-sm text-white line-clamp-1 font-medium">${item.prompt}</p>
                         </div>
-                    </div>
-                    <div class="p-3 bg-white rounded-b-lg border-t border-gray-100 flex justify-between items-center gap-2">
-                         <span class="text-[10px] font-bold bg-blue-100 text-blue-600 px-2 py-0.5 rounded uppercase tracking-wide truncate max-w-[100px]">${item.category || 'Umum'}</span>
-                         <span class="text-[10px] text-gray-400 truncate">By: ${item.userName || 'User'}</span>
                     </div>
                 `;
                 els.gallery.appendChild(card);
             });
             
-            // Spacers untuk baris terakhir supaya tak kembang semangkuk (penting untuk flex-grow layout)
+            // Spacers untuk baris terakhir
             for(let i=0; i<8; i++) els.gallery.appendChild(document.createElement('div')).className = 'flex-grow h-0 p-0 m-0 opacity-0 border-0';
         }
 
