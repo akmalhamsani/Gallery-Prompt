@@ -176,9 +176,11 @@
             </button>
             
             <div id="mobile-user-links" class="hidden space-y-2 mt-2">
-                <button onclick="if(currentUserId) window.showUserProfile(currentUserId); window.toggleMobileMenu()" class="mobile-nav-btn">
+                <!-- PEMBETULAN: Tambah ID untuk butang ini dan buang onclick inline yang menyebabkan ralat -->
+                <button id="mobile-nav-myprofile" class="mobile-nav-btn">
                     <span>👤</span> Profil Saya
                 </button>
+                
                 <button onclick="window.switchView('liked'); window.toggleMobileMenu()" class="mobile-nav-btn">
                     <span>❤️</span> Promp Disukai
                 </button>
@@ -304,6 +306,7 @@
             mobilePendingCount: document.getElementById('mobile-pending-count'),
             mobileRequestCount: document.getElementById('mobile-request-count'),
             mobileNavRequest: document.getElementById('mobile-nav-request'),
+            mobileNavMyProfile: document.getElementById('mobile-nav-myprofile'), // TAMBAH INI
 
             // Profile Elements
             profileViewContainer: document.getElementById('profile-view-container'),
@@ -584,12 +587,12 @@
                 els.commentInput.value = '';
                 const commentsRef = collection(db, `${galleryRef.path}/${item.id}/comments`);
                 await addDoc(commentsRef, commentData);
-                scrollToBottomComments(); 
+                scrollToBottomComments(); // AUTO SCROLL
                 if (item.userId && item.userId !== currentUserId) {
                     const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${item.userId}/notifications`);
                     addDoc(notifRef, { type: 'comment', fromName: commentData.userName, itemId: item.id, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error);
                 }
-            } catch (err) { console.error(err); notify("Gagal menghantar komen.", 'error'); }
+            } catch (err) { console.error("Reply error:", err); notify("Gagal menghantar komen.", 'error'); }
         };
 
         window.deleteComment = async (itemId, commentId) => { if(!confirm("Padam komen ini?")) return; try { await deleteDoc(doc(db, `${galleryRef.path}/${itemId}/comments/${commentId}`)); notify("Komen dipadam."); } catch(err) { notify("Gagal padam komen.", 'error'); } };
@@ -739,10 +742,23 @@
         els.approveAllBtn.onclick = window.approveAll; els.closeModalBtn.onclick = window.closeModal; els.modal.onclick = (e) => { if(e.target === els.modal) window.closeModal(); }; 
         els.prevBtn.onclick = window.showPrevItem; els.nextBtn.onclick = window.showNextItem;
         
+        // EVENT LISTENER BUTANG PROFIL DESKTOP
         if(els.navs.myprofile) {
             els.navs.myprofile.onclick = () => {
                 if(currentUserId) window.showUserProfile(currentUserId);
                 else notify("Sila log masuk dahulu.", 'error');
+            };
+        }
+
+        // EVENT LISTENER BUTANG PROFIL MOBILE (BARU)
+        if(els.mobileNavMyProfile) {
+            els.mobileNavMyProfile.onclick = () => {
+                if(currentUserId) {
+                    window.showUserProfile(currentUserId);
+                    window.toggleMobileMenu(); // Tutup menu
+                } else {
+                    notify("Sila log masuk dahulu.", 'error');
+                }
             };
         }
 
