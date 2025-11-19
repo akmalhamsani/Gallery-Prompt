@@ -30,6 +30,11 @@
             height: var(--img-height);
             transition: height 0.1s ease-out;
         }
+        /* Style untuk butang navigasi modal */
+        .modal-nav-btn {
+            @apply absolute z-20 p-2 text-white text-3xl opacity-60 hover:opacity-100 transition-opacity;
+            top: 50%; transform: translateY(-50%);
+        }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-6 md:p-10">
@@ -128,11 +133,19 @@
 
     <!-- Modal Lihat Penuh -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-4xl max-h-[90vh] h-auto rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
-            <button id="close-modal-btn" class="absolute top-2 right-2 z-10 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
-            <div class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0">
+        <!-- Butang Navigasi Prev -->
+        <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">
+            &lt;
+        </button>
+        
+        <div id="modal-content-wrapper" class="bg-white w-full max-w-4xl max-h-[90vh] h-auto rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
+            
+            <button id="close-modal-btn" class="absolute top-2 right-2 z-30 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
+            
+            <div id="modal-image-area" class="w-full md:w-1/2 bg-gray-900 flex items-center justify-center p-2 shrink-0">
                 <img id="modal-img" src="" class="max-h-[30vh] md:max-h-[85vh] w-auto object-contain rounded-lg">
             </div>
+            
             <div class="w-full md:w-1/2 p-6 flex flex-col bg-white flex-1 min-h-0">
                 <h3 class="text-lg font-bold text-gray-800 mb-2 border-b pb-2 shrink-0">Promp Penuh</h3>
                 <div class="flex-grow overflow-y-auto pr-2 mb-4 custom-scroll overscroll-contain">
@@ -150,6 +163,11 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Butang Navigasi Next -->
+        <button id="next-modal-btn" class="modal-nav-btn right-2 hidden">
+            &gt;
+        </button>
     </div>
 
     <div id="notification" class="hidden fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-50 flex items-center gap-2">
@@ -161,6 +179,7 @@
         import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, setDoc, updateDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Konfigurasi Firebase Anda (Sila pastikan ini adalah yang sebenar)
         const firebaseConfig = {
             apiKey: "AIzaSyCpOw2nHuxHpKfkDxZzAe4nyqXrmhZZbSM",
             authDomain: "galeri-promp-saya.firebaseapp.com",
@@ -175,6 +194,11 @@
         let db, auth, galleryRef, categoriesRef;
         let allItems = [], currentUserId = null, isSuperUser = false;
         let currentView = 'gallery', currentCategory = 'all';
+        
+        // State baru untuk Navigasi Modal
+        let modalItems = [];
+        let currentModalIndex = -1;
+        let touchstartX = 0;
 
         const els = {
             loginBtn: document.getElementById('login-btn'),
@@ -192,12 +216,16 @@
             approveAllBtn: document.getElementById('approve-all-btn'),
             approveAllCount: document.getElementById('approve-all-count'),
             modal: document.getElementById('view-modal'),
+            modalContentWrapper: document.getElementById('modal-content-wrapper'),
+            modalImageArea: document.getElementById('modal-image-area'),
             modalImg: document.getElementById('modal-img'),
             modalPrompt: document.getElementById('modal-prompt'),
             modalCategory: document.getElementById('modal-category'),
             modalUploader: document.getElementById('modal-uploader'),
             modalCopyBtn: document.getElementById('modal-copy-btn'),
             closeModalBtn: document.getElementById('close-modal-btn'),
+            prevBtn: document.getElementById('prev-modal-btn'),
+            nextBtn: document.getElementById('next-modal-btn'),
             sizeSlider: document.getElementById('size-slider'),
             navs: {
                 gallery: document.getElementById('nav-gallery'),
@@ -253,7 +281,6 @@
 
             itemsToShow.forEach(item => {
                 const card = document.createElement('div');
-                // PENTING: flex-grow benarkan kad mengembang mengisi ruang kosong dalam baris
                 card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative flex-grow hover:shadow-xl transition-shadow select-none overflow-hidden';
                 
                 const isOwner = currentUserId && item.userId === currentUserId;
@@ -266,12 +293,10 @@
 
                 let approveBtn = '';
                 if (isSuperUser && isPending && currentView === 'request') {
-                    // Letak butang approve di sebelah kiri atas
                     approveBtn = `<button onclick="event.stopPropagation(); window.approveItem('${item.id}')" class="approve-btn absolute top-1 left-1 z-20 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:bg-green-700 flex items-center gap-1">✓ Approve</button>`;
                 }
 
                 let statusBadge = '';
-                // Hanya tunjuk badge status jika BUKAN super user (kerana super user ada approve button)
                 if (!isSuperUser && (currentView === 'myprompt' || currentView === 'pending')) {
                     const badgeColor = isPending ? 'bg-yellow-500' : 'bg-green-500';
                     const badgeText = isPending ? 'Pending' : 'Approved';
@@ -284,10 +309,7 @@
                     if (!e.target.closest('button')) copyToClipboard(item.prompt);
                 };
 
-                // --- STRUKTUR BARU KAD (Terapung sepenuhnya) ---
                 card.innerHTML = `
-                    
-                    <!-- IMAGE SECTION (Satu-satunya bahagian kad) -->
                     <div class="relative overflow-hidden w-full h-full">
                         
                         <!-- Floating Header (Kategori & By: NAMA) -->
@@ -312,19 +334,43 @@
                 els.gallery.appendChild(card);
             });
             
-            // Spacers untuk baris terakhir
             for(let i=0; i<8; i++) els.gallery.appendChild(document.createElement('div')).className = 'flex-grow h-0 p-0 m-0 opacity-0 border-0';
         }
-
-        // --- MODAL FUNCTIONS ---
-        window.openModal = (id) => {
-            const item = allItems.find(i => i.id === id);
-            if(!item) return;
+        
+        // Fungsi untuk mengemas kini kandungan modal
+        function updateModalContent(index) {
+            if (index < 0 || index >= modalItems.length) return;
+            const item = modalItems[index];
+            currentModalIndex = index;
+            
             els.modalImg.src = item.imageUrl;
             els.modalPrompt.textContent = item.prompt;
             els.modalCategory.textContent = item.category || 'Umum';
             els.modalUploader.textContent = `Uploaded by: ${item.userName || 'User'}`;
             els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt);
+            
+            // Tunjukkan/Sembunyikan butang navigasi
+            els.prevBtn.classList.toggle('hidden', currentModalIndex === 0);
+            els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1);
+        }
+
+        // --- MODAL NAVIGATION ---
+        window.openModal = (id) => {
+            // 1. Dapatkan senarai item yang sedang dipaparkan di galeri
+            let filtered = allItems.filter(item => currentCategory === 'all' || item.category === currentCategory);
+            
+            if (currentView === 'gallery') modalItems = filtered.filter(item => item.status === 'approved' || !item.status);
+            else if (currentView === 'myprompt') modalItems = filtered.filter(item => item.userId === currentUserId);
+            else if (currentView === 'pending') modalItems = filtered.filter(item => item.userId === currentUserId && item.status === 'pending');
+            else if (currentView === 'request') modalItems = filtered.filter(item => item.status === 'pending');
+            
+            // 2. Cari indeks item yang diklik
+            const initialIndex = modalItems.findIndex(i => i.id === id);
+            if (initialIndex === -1) return;
+
+            // 3. Paparkan modal dan kemas kini kandungan
+            updateModalContent(initialIndex);
+            
             els.modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         };
@@ -332,9 +378,46 @@
         window.closeModal = () => {
             els.modal.classList.add('hidden');
             document.body.style.overflow = '';
+            currentModalIndex = -1;
+            modalItems = [];
+        };
+        
+        // Fungsi navigasi
+        window.showPrevItem = () => {
+            if (currentModalIndex > 0) {
+                updateModalContent(currentModalIndex - 1);
+            }
         };
 
-        // --- FIREBASE ACTIONS ---
+        window.showNextItem = () => {
+            if (currentModalIndex < modalItems.length - 1) {
+                updateModalContent(currentModalIndex + 1);
+            }
+        };
+
+        // --- SWIPE LOGIC ---
+        els.modalImageArea.addEventListener('touchstart', (e) => {
+            touchstartX = e.changedTouches[0].screenX;
+        }, false);
+
+        els.modalImageArea.addEventListener('touchend', (e) => {
+            const touchendX = e.changedTouches[0].screenX;
+            const diffX = touchendX - touchstartX;
+            const swipeThreshold = 50; // Jarak minimum untuk dikira swipe
+
+            if (Math.abs(diffX) > swipeThreshold) {
+                if (diffX < 0) {
+                    // Leret ke kiri -> Tunjukkan item seterusnya
+                    window.showNextItem();
+                } else {
+                    // Leret ke kanan -> Tunjukkan item sebelumnya
+                    window.showPrevItem();
+                }
+            }
+            touchstartX = 0; // Reset
+        }, false);
+        
+        // --- FIREBASE ACTIONS (Tidak Berubah) ---
         window.addItem = async (e) => {
             e.preventDefault();
             if (!currentUserId) return notify("Sila log masuk.", 'error');
@@ -446,6 +529,8 @@
         els.approveAllBtn.onclick = window.approveAll;
         els.closeModalBtn.onclick = window.closeModal;
         els.modal.onclick = (e) => { if(e.target === els.modal) window.closeModal(); }; 
+        els.prevBtn.onclick = window.showPrevItem;
+        els.nextBtn.onclick = window.showNextItem;
         
         Object.keys(els.navs).forEach(key => { if(els.navs[key]) els.navs[key].onclick = () => switchView(key); });
         document.addEventListener('DOMContentLoaded', init);
