@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Galeri Promp (Social)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Tambah library dayjs untuk format masa -->
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
     <script>dayjs.extend(window.dayjs_plugin_relativeTime);</script>
@@ -92,10 +91,9 @@
         </div>
     </main>
 
-    <!-- Modal Lihat Penuh (Dikemas kini dengan Komen) -->
+    <!-- Modal Lihat Penuh -->
     <div id="view-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
         <button id="prev-modal-btn" class="modal-nav-btn left-2 hidden">&lt;</button>
-        
         <div id="modal-content-wrapper" class="bg-white w-full max-w-5xl max-h-[95vh] h-[90vh] rounded-xl overflow-hidden flex flex-col md:flex-row shadow-2xl relative animate-fade-in">
             <button id="close-modal-btn" class="absolute top-2 right-2 z-30 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black transition-colors">&times;</button>
             
@@ -107,7 +105,6 @@
             <!-- Bahagian Maklumat & Komen -->
             <div class="w-full md:w-1/2 flex flex-col bg-white md:h-full h-1/2 border-l border-gray-200">
                 
-                <!-- Header Promp -->
                 <div class="p-4 border-b border-gray-100">
                     <h3 class="text-lg font-bold text-gray-800 mb-1">Maklumat Promp</h3>
                     <div class="flex justify-between text-xs text-gray-500">
@@ -116,41 +113,32 @@
                     </div>
                 </div>
 
-                <!-- Scrollable Area: Text & Comments -->
                 <div class="flex-grow overflow-y-auto p-4 custom-scroll bg-gray-50">
-                    <!-- Promp -->
                     <div class="mb-6">
                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Promp Penuh</h4>
                         <p id="modal-prompt" class="text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-mono bg-white p-3 rounded border shadow-sm select-text"></p>
                     </div>
 
-                    <!-- Komen -->
                     <div>
                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-2 flex items-center gap-2">
                             Komen (<span id="comment-count">0</span>)
                         </h4>
-                        <div id="comments-list" class="space-y-3">
-                            <!-- Komen akan dimasukkan di sini oleh JS -->
-                            <p class="text-center text-gray-400 text-sm italic">Tiada komen lagi.</p>
-                        </div>
+                        <div id="comments-list" class="space-y-3"></div>
                     </div>
                 </div>
                 
-                <!-- Footer: Actions & Comment Input -->
                 <div class="p-3 border-t border-gray-200 bg-white shrink-0">
-                    <!-- Buttons -->
                     <div class="flex gap-2 mb-3">
                         <button id="modal-like-btn" class="flex-1 bg-gray-50 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200">
                             <svg id="modal-heart-icon" class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
                             <span id="modal-like-count">0</span>
                         </button>
                         <button id="modal-copy-btn" class="flex-[2] bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 flex items-center justify-center gap-2 transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
                             Salin Promp
                         </button>
                     </div>
 
-                    <!-- Comment Input -->
                     <div id="comment-input-area" class="relative">
                         <input type="text" id="comment-input" placeholder="Tulis komen..." class="w-full p-3 pr-10 bg-gray-100 border-0 rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all" onkeypress="if(event.key==='Enter') window.postComment()">
                         <button onclick="window.postComment()" class="absolute right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800 p-1">
@@ -191,7 +179,7 @@
         let allItems = [], currentUserId = null, isSuperUser = false;
         let currentView = 'gallery', currentCategory = 'all', currentUserIdFilter = null;
         let modalItems = [], currentModalIndex = -1, touchstartX = 0;
-        let commentsUnsubscribe = null; // Untuk menghentikan listener komen bila modal tutup
+        let commentsUnsubscribe = null;
 
         const els = {
             loginBtn: document.getElementById('login-btn'),
@@ -219,11 +207,11 @@
             modalLikeBtn: document.getElementById('modal-like-btn'),
             modalHeartIcon: document.getElementById('modal-heart-icon'),
             modalLikeCount: document.getElementById('modal-like-count'),
-            commentsList: document.getElementById('comments-list'), // NEW
-            commentCount: document.getElementById('comment-count'), // NEW
-            commentInput: document.getElementById('comment-input'), // NEW
-            commentInputArea: document.getElementById('comment-input-area'), // NEW
-            loginToComment: document.getElementById('login-to-comment'), // NEW
+            commentsList: document.getElementById('comments-list'),
+            commentCount: document.getElementById('comment-count'),
+            commentInput: document.getElementById('comment-input'),
+            commentInputArea: document.getElementById('comment-input-area'),
+            loginToComment: document.getElementById('login-to-comment'),
             closeModalBtn: document.getElementById('close-modal-btn'),
             prevBtn: document.getElementById('prev-modal-btn'),
             nextBtn: document.getElementById('next-modal-btn'),
@@ -240,8 +228,7 @@
 
         // --- COMMENT FUNCTIONS ---
         function listenToComments(itemId) {
-            if (commentsUnsubscribe) commentsUnsubscribe(); // Hentikan listener lama
-            
+            if (commentsUnsubscribe) commentsUnsubscribe();
             const commentsRef = collection(db, `${galleryRef.path}/${itemId}/comments`);
             const q = query(commentsRef, orderBy('timestamp', 'asc'));
 
@@ -254,22 +241,38 @@
                     return;
                 }
 
-                snapshot.forEach(doc => {
-                    const c = doc.data();
+                snapshot.forEach(docSnap => {
+                    const c = docSnap.data();
+                    const cid = docSnap.id;
                     const isMyComment = currentUserId && c.userId === currentUserId;
+                    const canDelete = isMyComment || isSuperUser;
                     const timeAgo = dayjs(c.timestamp).fromNow();
                     
+                    const likes = c.likes || [];
+                    const isLiked = currentUserId && likes.includes(currentUserId);
+                    const likeCount = likes.length;
+
                     const div = document.createElement('div');
-                    div.className = 'bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm';
+                    div.className = 'bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm group';
                     div.innerHTML = `
                         <div class="flex justify-between items-start mb-1">
-                            <span class="font-bold text-gray-700 text-xs">${c.userName || 'User'}</span>
-                            <span class="text-[10px] text-gray-400">${timeAgo}</span>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-700 text-xs">${c.userName || 'User'}</span>
+                                <span class="text-[10px] text-gray-400">${timeAgo}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <!-- Like Komen -->
+                                <button onclick="window.toggleCommentLike('${itemId}', '${cid}', '${c.userId}')" class="flex items-center gap-1 text-gray-400 hover:text-pink-500 transition-colors ${isLiked ? 'text-pink-500' : ''}" title="Like Komen">
+                                    <span class="text-[10px] font-bold">${likeCount > 0 ? likeCount : ''}</span>
+                                    <svg class="w-3.5 h-3.5 ${isLiked ? 'fill-current' : 'fill-none'} stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                </button>
+                                <!-- Delete Komen -->
+                                ${canDelete ? `<button onclick="window.deleteComment('${itemId}', '${cid}')" class="text-gray-300 hover:text-red-500 transition-colors" title="Padam Komen">&times;</button>` : ''}
+                            </div>
                         </div>
                         <p class="text-gray-600 leading-snug">${c.text}</p>
                     `;
                     els.commentsList.appendChild(div);
-                    // Auto scroll ke bawah untuk komen baru
                     els.commentsList.parentElement.scrollTop = els.commentsList.parentElement.scrollHeight;
                 });
             });
@@ -279,37 +282,74 @@
             const text = els.commentInput.value.trim();
             if (!text) return;
             if (!currentUserId) return notify("Sila log masuk.", 'error');
-
             const item = modalItems[currentModalIndex];
             if (!item) return;
-
             const user = auth.currentUser;
-            const commentData = {
-                text: text,
-                userId: currentUserId,
-                userName: (user.displayName || 'User').split(' ')[0],
-                timestamp: Date.now()
-            };
-
+            const commentData = { text: text, userId: currentUserId, userName: (user.displayName || 'User').split(' ')[0], timestamp: Date.now(), likes: [] };
             try {
-                els.commentInput.value = ''; // Clear input segera
+                els.commentInput.value = '';
                 const commentsRef = collection(db, `${galleryRef.path}/${item.id}/comments`);
                 await addDoc(commentsRef, commentData);
-                
-                // Hantar notifikasi kepada pemilik gambar (jika bukan diri sendiri)
                 if (item.userId && item.userId !== currentUserId) {
                     const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${item.userId}/notifications`);
-                    addDoc(notifRef, {
-                        type: 'comment', fromName: commentData.userName, itemId: item.id, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false
-                    }).catch(console.error);
+                    addDoc(notifRef, { type: 'comment', fromName: commentData.userName, itemId: item.id, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error);
                 }
-            } catch (err) {
-                console.error("Error post comment:", err);
-                notify("Gagal menghantar komen.", 'error');
-            }
+            } catch (err) { console.error(err); notify("Gagal menghantar komen.", 'error'); }
         };
 
-        // --- OTHER FUNCTIONS (Kekal Sama) ---
+        window.deleteComment = async (itemId, commentId) => {
+            if(!confirm("Padam komen ini?")) return;
+            try {
+                await deleteDoc(doc(db, `${galleryRef.path}/${itemId}/comments/${commentId}`));
+                notify("Komen dipadam.");
+            } catch(err) { notify("Gagal padam komen.", 'error'); }
+        };
+
+        window.toggleCommentLike = async (itemId, commentId, commentOwnerId) => {
+            if (!currentUserId) return notify("Log masuk untuk like.", 'error');
+            const commentRef = doc(db, `${galleryRef.path}/${itemId}/comments/${commentId}`);
+            // Kita perlu baca dulu untuk tahu status like semasa (Firestore arrayUnion toggle workaround)
+            // Tapi untuk UI pantas, kita guna try-catch optimistik atau semak state UI. 
+            // Cara selamat: Guna transaction atau semak di UI (kita ada data snapshot).
+            // Di sini kita akan cuba remove dulu, kalau tak berjaya bermakna belum like (add).
+            // ATAU, lebih mudah: kita dah ada data real-time di UI, tapi fungsi ini dipanggil dari onclick.
+            
+            // Untuk simplisiti dan kecekapan, kita guna update terus berdasarkan apa yg kita nampak di UI.
+            // TAPI, arrayUnion/Remove tak boleh toggle automatik.
+            // Kita buat cara mudah: Hantar kedua-duanya? Tak boleh.
+            // Kita fetch dokumen sekejap (kecil saja).
+            
+            try {
+                // Dapatkan data komen secara terus dari elemen UI atau fetch ringan?
+                // Kita guna trick: ArrayUnion. Jika user dah ada, tak effect.
+                // Kita perlu tahu status. Di 'listenToComments', kita tahu 'isLiked'.
+                // Kita ubah fungsi di atas untuk pass status? Tidak perlu, kita fetch doc.
+                // Sebenarnya, kita boleh guna butang toggle di UI untuk pass boolean.
+                // Mari kita ubah suai HTML di listenToComments untuk pass boolean 'isLiked'.
+                // TAPI HTML string susah nak update real-time variable. 
+                // JADI, kita buat transaction kecil.
+                
+                // Transaction terlalu kompleks untuk demo ini. Kita buat Get -> Update.
+                const snap = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(m=>m.getDoc(commentRef));
+                if(snap.exists()) {
+                    const c = snap.data();
+                    const likes = c.likes || [];
+                    if(likes.includes(currentUserId)) {
+                        await updateDoc(commentRef, { likes: arrayRemove(currentUserId) });
+                    } else {
+                        await updateDoc(commentRef, { likes: arrayUnion(currentUserId) });
+                        // Notif Like Komen
+                        if(commentOwnerId && commentOwnerId !== currentUserId) {
+                             const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${commentOwnerId}/notifications`);
+                             const user = auth.currentUser;
+                             addDoc(notifRef, { type: 'like_comment', fromName: (user.displayName||'User').split(' ')[0], itemId: itemId, promptSnippet: c.text.substring(0, 15) + '...', timestamp: Date.now(), read: false }).catch(console.error);
+                        }
+                    }
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        // --- OTHER FUNCTIONS ---
         window.filterByCategory = (cat) => {
             currentCategory = cat;
             Array.from(els.catTabs.children).forEach(btn => {
@@ -415,12 +455,9 @@
         function updateModalContent(index) {
             if (index < 0 || index >= modalItems.length) return;
             const item = modalItems[index]; currentModalIndex = index;
-            
             els.modalImg.src = item.imageUrl; els.modalPrompt.textContent = item.prompt;
             els.modalCategory.textContent = item.category || 'Umum'; els.modalUploader.textContent = `Uploaded by: ${item.userName || 'User'}`;
-            
             els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt);
-            
             const likes = item.likes || [];
             const isLikedByMe = currentUserId && likes.includes(currentUserId);
             els.modalLikeCount.textContent = likes.length;
@@ -432,10 +469,7 @@
                 els.modalLikeBtn.classList.remove('bg-pink-50', 'border-pink-200');
             }
             els.modalLikeBtn.onclick = () => { els.modalHeartIcon.classList.add('like-anim'); setTimeout(()=>els.modalHeartIcon.classList.remove('like-anim'), 400); window.toggleLike(item.id, item.userId); };
-
-            // START LISTENING TO COMMENTS
             listenToComments(item.id);
-
             els.prevBtn.classList.toggle('hidden', currentModalIndex === 0); els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1);
         }
 
@@ -454,15 +488,9 @@
             if (initialIndex === -1) return;
             updateModalContent(initialIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden';
         };
-
-        window.closeModal = () => { 
-            els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; 
-            if(commentsUnsubscribe) commentsUnsubscribe(); // Stop listening
-        };
-        
+        window.closeModal = () => { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; if(commentsUnsubscribe) commentsUnsubscribe(); };
         window.showPrevItem = () => { if (currentModalIndex > 0) updateModalContent(currentModalIndex - 1); };
         window.showNextItem = () => { if (currentModalIndex < modalItems.length - 1) updateModalContent(currentModalIndex + 1); };
-        
         els.modalImageArea.addEventListener('touchstart', (e) => { touchstartX = e.changedTouches[0].screenX; }, false);
         els.modalImageArea.addEventListener('touchend', (e) => { if (Math.abs(e.changedTouches[0].screenX - touchstartX) > 50) e.changedTouches[0].screenX < touchstartX ? window.showNextItem() : window.showPrevItem(); touchstartX = 0; }, false);
         
@@ -486,7 +514,10 @@
                     if (change.type === 'added') {
                         const data = change.doc.data();
                         if (!data.read && Date.now() - data.timestamp < 10000) {
-                            const msg = data.type === 'like' ? `❤️ ${data.fromName} menyukai promp anda` : `💬 ${data.fromName} mengomen promp anda`;
+                            let msg = "Notifikasi baru";
+                            if(data.type === 'like') msg = `❤️ ${data.fromName} menyukai promp anda`;
+                            else if(data.type === 'comment') msg = `💬 ${data.fromName} mengomen promp anda`;
+                            else if(data.type === 'like_comment') msg = `❤️ ${data.fromName} menyukai komen anda: "${data.promptSnippet}"`;
                             notify(msg, 'success');
                             await deleteDoc(change.doc.ref); 
                         }
@@ -544,7 +575,7 @@
         }
 
         function notify(msg, type='success') {
-            els.notifMsg.textContent = msg; els.notifIcon.textContent = type==='error'?'⚠️':(msg.includes('komen')?'💬':'🔔');
+            els.notifMsg.textContent = msg; els.notifIcon.textContent = type==='error'?'⚠️':(msg.includes('komen')?'💬':(msg.includes('Like')?'❤️':'🔔'));
             els.notif.className = `fixed bottom-5 left-1/2 -translate-x-1/2 px-5 py-3 rounded-lg shadow-lg text-sm font-medium z-[200] flex items-center gap-2 transition-all duration-300 transform translate-y-0 opacity-100 ${type === 'error' ? 'bg-red-600' : 'bg-gray-800'} text-white`;
             els.notif.classList.remove('hidden'); setTimeout(() => { els.notif.classList.add('translate-y-10', 'opacity-0'); setTimeout(()=>els.notif.classList.add('hidden'), 300); }, 3000);
         }
