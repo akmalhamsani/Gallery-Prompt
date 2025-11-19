@@ -324,8 +324,9 @@
                 const isPending = status === 'pending';
                 const canDelete = isOwner || isSuperUser;
                 
+                // UBAH: Tukar 'top-1' kepada 'top-10' supaya butang turun ke bawah header
                 const deleteBtn = canDelete ? 
-                    `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-1 right-1 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : '';
+                    `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-10 right-1 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : '';
 
                 let approveBtn = '';
                 if (isSuperUser && isPending && currentView === 'request') {
