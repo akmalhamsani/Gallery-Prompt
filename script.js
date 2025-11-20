@@ -407,5 +407,4 @@ function listenToComments(itemId) { if (commentsUnsubscribe) commentsUnsubscribe
         
         document.addEventListener('DOMContentLoaded', init);
     </script>
-</body>
-</html>
+
