@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Promp (Upload)</title>
+    <title>Galeri Promp (Social)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
@@ -19,7 +19,9 @@
         .nav-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .nav-btn { background-color: white; color: #4b5563; border: 1px solid #d1d5db; }
         
-        .mobile-nav-btn { @apply w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-semibold transition-colors flex items-center gap-3 border-b border-gray-50; }
+        .mobile-nav-btn { 
+            @apply w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-semibold transition-colors flex items-center gap-3 border-b border-gray-50; 
+        }
         .mobile-nav-btn.active { @apply text-blue-600 bg-blue-50 border-blue-100; }
         
         :root { --img-height: 300px; }
@@ -71,7 +73,7 @@
                 </div>
             </div>
 
-            <!-- Borang Tambah (UPLOAD VERSION) -->
+            <!-- Borang Tambah -->
             <div id="add-form-container" class="hidden mb-10 px-4">
                 <form id="add-form" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto border-l-4 border-green-500">
                     <div class="flex justify-between items-center mb-4">
@@ -265,9 +267,7 @@
             viewTitle: document.getElementById('current-view-title'),
             approveAllBtn: document.getElementById('approve-all-btn'),
             approveAllCount: document.getElementById('approve-all-count'),
-            
             imageFile: document.getElementById('image-file'),
-            
             mobileMenuBtn: document.getElementById('mobile-menu-toggle'),
             mobileSidebar: document.getElementById('mobile-sidebar'),
             mobileBackdrop: document.getElementById('mobile-backdrop'),
@@ -284,7 +284,6 @@
             mobileNavGallery: document.getElementById('mobile-nav-gallery'),
             mobileNavLiked: document.getElementById('mobile-nav-liked'),
             mobileNavPending: document.getElementById('mobile-nav-pending'),
-
             profileViewContainer: document.getElementById('profile-view-container'),
             profileImg: document.getElementById('profile-img'),
             profileName: document.getElementById('profile-name'),
@@ -293,7 +292,6 @@
             bioEditForm: document.getElementById('bio-edit-form'),
             bioInput: document.getElementById('bio-input'),
             profileGalleryGrid: document.getElementById('profile-gallery-grid'),
-
             modal: document.getElementById('view-modal'),
             modalImg: document.getElementById('modal-img'),
             modalPrompt: document.getElementById('modal-prompt'),
@@ -319,14 +317,7 @@
             notif: document.getElementById('notification'),
             notifMsg: document.getElementById('notif-msg'),
             notifIcon: document.getElementById('notif-icon'),
-            navs: { 
-                gallery: document.getElementById('nav-gallery'), 
-                liked: document.getElementById('nav-liked'), 
-                myprofile: document.getElementById('nav-myprofile'),
-                myprompt: document.getElementById('nav-myprompt'), 
-                pending: document.getElementById('nav-pending'), 
-                request: document.getElementById('nav-request') 
-            },
+            navs: { gallery: document.getElementById('nav-gallery'), liked: document.getElementById('nav-liked'), myprofile: document.getElementById('nav-myprofile'), myprompt: document.getElementById('nav-myprompt'), pending: document.getElementById('nav-pending'), request: document.getElementById('nav-request') },
             counts: { pending: document.getElementById('pending-count-user'), request: document.getElementById('request-count-admin') }
         };
 
@@ -353,62 +344,23 @@
                 const storageRef = ref(storage, 'images/' + fileName);
                 await uploadBytes(storageRef, file);
                 const downloadURL = await getDownloadURL(storageRef);
-                const newItem = {
-                    imageUrl: downloadURL,
-                    prompt: prompt,
-                    category: category,
-                    timestamp: Date.now(),
-                    userId: currentUserId,
-                    userName: (user.displayName || 'User').split(' ')[0],
-                    status: 'pending',
-                    likes: []
-                };
-                if (document.getElementById('new-category').value.trim()) {
-                     setDoc(doc(db, categoriesRef.path, newItem.category), { name: newItem.category }).catch(console.error);
-                }
+                const newItem = { imageUrl: downloadURL, prompt: prompt, category: category, timestamp: Date.now(), userId: currentUserId, userName: (user.displayName || 'User').split(' ')[0], status: 'pending', likes: [] };
+                if (document.getElementById('new-category').value.trim()) { setDoc(doc(db, categoriesRef.path, newItem.category), { name: newItem.category }).catch(console.error); }
                 await addDoc(galleryRef, newItem);
-                els.addForm.reset();
-                els.imageFile.value = ""; 
-                els.toggleFormBtn.click(); 
-                notify("Gambar berjaya diupload! Menunggu kelulusan admin.");
-                switchView('pending');
-            } catch (err) {
-                console.error("Upload error:", err);
-                notify("Gagal muat naik gambar: " + err.message, 'error');
-            } finally {
-                els.submitBtn.disabled = false;
-                els.submitBtn.innerText = "Hantar untuk Approval";
-            }
+                els.addForm.reset(); els.imageFile.value = ""; els.toggleFormBtn.click(); notify("Gambar berjaya diupload! Menunggu kelulusan admin."); switchView('pending');
+            } catch (err) { console.error("Upload error:", err); notify("Gagal muat naik gambar: " + err.message, 'error'); } finally { els.submitBtn.disabled = false; els.submitBtn.innerText = "Hantar untuk Approval"; }
         };
 
-        // --- URL & SHARE ---
         function updateUrlState(params) { try { const url = new URL(window.location); if (params.view) url.searchParams.set('view', params.view); if (params.id) url.searchParams.set('id', params.id); else url.searchParams.delete('id'); window.history.pushState({}, '', url); } catch (e) {} }
         window.addEventListener('popstate', () => { const params = new URLSearchParams(window.location.search); const view = params.get('view') || 'gallery'; const id = params.get('id'); if (view !== currentView) window.switchView(view); if (id) { const itemIndex = allItems.findIndex(i => i.id === id); if (itemIndex !== -1) { modalItems = allItems; updateModalContent(itemIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; currentModalIndex = itemIndex; } } else { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; } });
         window.shareItem = async (itemId) => { const item = allItems.find(i => i.id === itemId); if (!item) return; let shareUrl = window.location.href; try { const url = new URL(window.location.origin + window.location.pathname); url.searchParams.set('view', 'gallery'); url.searchParams.set('id', itemId); shareUrl = url.toString(); } catch (e) {} const shareData = { title: 'Galeri Promp', text: `Lihat promp menarik ini: "${item.prompt}"`, url: shareUrl }; if (navigator.share) { try { await navigator.share(shareData); } catch (err) {} } else { copyToClipboard(shareUrl); notify('Pautan gambar disalin!', 'success'); } };
 
-        // --- UI HELPERS ---
-        window.toggleMobileMenu = () => {
-            const sidebar = els.mobileSidebar; const backdrop = els.mobileBackdrop; const isClosed = sidebar.classList.contains('translate-x-full');
-            if (isClosed) { sidebar.classList.remove('translate-x-full'); sidebar.classList.add('translate-x-0'); backdrop.classList.remove('hidden'); setTimeout(() => backdrop.classList.remove('opacity-0'), 10); } 
-            else { sidebar.classList.remove('translate-x-0'); sidebar.classList.add('translate-x-full'); backdrop.classList.add('opacity-0'); setTimeout(() => backdrop.classList.add('hidden'), 300); }
-        };
+        window.toggleMobileMenu = () => { const sidebar = els.mobileSidebar; const backdrop = els.mobileBackdrop; const isClosed = sidebar.classList.contains('translate-x-full'); if (isClosed) { sidebar.classList.remove('translate-x-full'); sidebar.classList.add('translate-x-0'); backdrop.classList.remove('hidden'); setTimeout(() => backdrop.classList.remove('opacity-0'), 10); } else { sidebar.classList.remove('translate-x-0'); sidebar.classList.add('translate-x-full'); backdrop.classList.add('opacity-0'); setTimeout(() => backdrop.classList.add('hidden'), 300); } };
         window.toggleAddForm = () => { els.addFormContainer.classList.toggle('hidden'); if (!els.mobileSidebar.classList.contains('translate-x-full')) window.toggleMobileMenu(); };
-        function updateMobileMenuUI(user) {
-            if(user) { els.mobileLoginBtn.classList.add('hidden'); els.mobileUserInfo.classList.remove('hidden'); els.mobileUsername.textContent = user.displayName; els.mobileUserLinks.classList.remove('hidden'); els.mobileAddBtn.classList.remove('hidden'); } 
-            else { els.mobileLoginBtn.classList.remove('hidden'); els.mobileUserInfo.classList.add('hidden'); els.mobileUserLinks.classList.add('hidden'); els.mobileAddBtn.classList.add('hidden'); }
-        }
+        function updateMobileMenuUI(user) { if(user) { els.mobileLoginBtn.classList.add('hidden'); els.mobileUserInfo.classList.remove('hidden'); els.mobileUsername.textContent = user.displayName; els.mobileUserLinks.classList.remove('hidden'); els.mobileAddBtn.classList.remove('hidden'); } else { els.mobileLoginBtn.classList.remove('hidden'); els.mobileUserInfo.classList.add('hidden'); els.mobileUserLinks.classList.add('hidden'); els.mobileAddBtn.classList.add('hidden'); } }
         function scrollToBottomComments() { setTimeout(() => { if (window.innerWidth < 768) els.modalMobileScrollContainer.scrollTop = els.modalMobileScrollContainer.scrollHeight; else els.modalTextContent.scrollTop = els.modalTextContent.scrollHeight; }, 200); }
 
-        // --- PROFILE & OTHERS ---
-        window.showUserProfile = async (uid) => {
-            if(!uid) return; profileUserId = uid; currentView = 'profile'; updateUrlState({ view: 'profile' });
-            els.gallery.classList.add('hidden'); els.mainControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden'); els.viewTitle.classList.add('hidden'); els.profileViewContainer.classList.remove('hidden');
-            Object.values(els.navs).forEach(btn => btn.classList.remove('active')); updateMobileActiveState('profile');
-            els.profileName.textContent = "Memuatkan..."; els.profileBio.textContent = ""; els.profileImg.src = "https://placehold.co/150x150?text=Loading";
-            try { const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/users`, uid)); if (userDoc.exists()) { const data = userDoc.data(); els.profileName.textContent = data.displayName || 'Pengguna'; els.profileImg.src = data.photoURL || "https://placehold.co/150x150?text=User"; els.profileBio.textContent = data.bio || "Pengguna ini belum menulis bio."; } else { const someItem = allItems.find(i => i.userId === uid); els.profileName.textContent = someItem ? someItem.userName : 'Pengguna'; els.profileImg.src = "https://placehold.co/150x150?text=User"; els.profileBio.textContent = "Tiada bio."; } } catch (e) { console.error("Error loading profile", e); }
-            if (currentUserId && currentUserId === uid) { els.editBioBtn.classList.remove('hidden'); } else { els.editBioBtn.classList.add('hidden'); els.bioEditForm.classList.add('hidden'); }
-            renderProfileGallery(uid); window.closeModal();
-        };
+        window.showUserProfile = async (uid) => { if(!uid) return; profileUserId = uid; currentView = 'profile'; updateUrlState({ view: 'profile' }); els.gallery.classList.add('hidden'); els.mainControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden'); els.viewTitle.classList.add('hidden'); els.profileViewContainer.classList.remove('hidden'); Object.values(els.navs).forEach(btn => btn.classList.remove('active')); updateMobileActiveState('profile'); els.profileName.textContent = "Memuatkan..."; els.profileBio.textContent = ""; els.profileImg.src = "https://placehold.co/150x150?text=Loading"; try { const userDoc = await getDoc(doc(db, `artifacts/${appId}/public/data/users`, uid)); if (userDoc.exists()) { const data = userDoc.data(); els.profileName.textContent = data.displayName || 'Pengguna'; els.profileImg.src = data.photoURL || "https://placehold.co/150x150?text=User"; els.profileBio.textContent = data.bio || "Pengguna ini belum menulis bio."; } else { const someItem = allItems.find(i => i.userId === uid); els.profileName.textContent = someItem ? someItem.userName : 'Pengguna'; els.profileImg.src = "https://placehold.co/150x150?text=User"; els.profileBio.textContent = "Tiada bio."; } } catch (e) { console.error("Error loading profile", e); } if (currentUserId && currentUserId === uid) { els.editBioBtn.classList.remove('hidden'); } else { els.editBioBtn.classList.add('hidden'); els.bioEditForm.classList.add('hidden'); } renderProfileGallery(uid); window.closeModal(); };
         function renderProfileGallery(uid) { const userItems = allItems.filter(i => i.userId === uid && (i.status === 'approved' || !i.status || (currentUserId === uid))); els.profileGalleryGrid.innerHTML = ''; if (userItems.length === 0) { els.profileGalleryGrid.innerHTML = '<p class="text-gray-400 w-full text-center py-8">Tiada gambar diupload.</p>'; return; } userItems.forEach(item => { const div = document.createElement('div'); div.className = 'relative group overflow-hidden rounded-lg cursor-pointer h-40 w-40 md:h-48 md:w-48 bg-gray-200'; div.onclick = () => window.openModal(item.id); div.innerHTML = `<img src="${item.imageUrl}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"><div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors"></div>`; els.profileGalleryGrid.appendChild(div); }); }
         window.toggleBioEdit = () => { const form = els.bioEditForm; if (form.classList.contains('hidden')) { form.classList.remove('hidden'); els.bioInput.value = els.profileBio.textContent === "Pengguna ini belum menulis bio." || els.profileBio.textContent === "Tiada bio." ? "" : els.profileBio.textContent; els.bioInput.focus(); } else { form.classList.add('hidden'); } };
         window.saveBio = async () => { if (!currentUserId) return; const newBio = els.bioInput.value.trim(); try { const userRef = doc(db, `artifacts/${appId}/public/data/users`, currentUserId); await updateDoc(userRef, { bio: newBio }); els.profileBio.textContent = newBio || "Tiada bio."; window.toggleBioEdit(); notify("Bio dikemas kini!", 'success'); } catch (e) { console.error("Error saving bio", e); notify("Gagal simpan bio.", 'error'); } };
@@ -537,7 +489,6 @@
         els.approveAllBtn.onclick = window.approveAll; els.closeModalBtn.onclick = window.closeModal; els.modal.onclick = (e) => { if(e.target === els.modal) window.closeModal(); }; 
         els.prevBtn.onclick = window.showPrevItem; els.nextBtn.onclick = window.showNextItem;
         
-        // EVENT LISTENER BUTANG PROFIL DESKTOP
         if(els.navs.myprofile) {
             els.navs.myprofile.onclick = () => {
                 if(currentUserId) window.showUserProfile(currentUserId);
