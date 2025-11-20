@@ -71,7 +71,7 @@
                 </div>
             </div>
 
-            <!-- Borang Tambah -->
+            <!-- Borang Tambah (UPLOAD VERSION) -->
             <div id="add-form-container" class="hidden mb-10 px-4">
                 <form id="add-form" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto border-l-4 border-green-500">
                     <div class="flex justify-between items-center mb-4">
@@ -79,7 +79,6 @@
                         <button type="button" onclick="window.toggleAddForm()" class="text-gray-400 hover:text-red-500 text-xl">&times;</button>
                     </div>
                     <div class="space-y-4">
-                        <!-- Input Fail Gambar -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Gambar</label>
                             <input type="file" id="image-file" accept="image/*" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
@@ -333,16 +332,22 @@
 
         els.sizeSlider.addEventListener('input', (e) => document.documentElement.style.setProperty('--img-height', `${e.target.value}px`));
 
+        // --- ADD ITEM (UPLOAD) LOGIC ---
         window.addItem = async (e) => {
             e.preventDefault();
             if (!currentUserId) return notify("Sila log masuk.", 'error');
+            
             const file = els.imageFile.files[0];
             if (!file) return notify("Sila pilih gambar untuk dimuat naik!", 'error');
+
             const prompt = document.getElementById('image-prompt').value.trim();
             const category = els.catSelect.value || document.getElementById('new-category').value.trim() || 'Umum';
+
             els.submitBtn.disabled = true;
             els.submitBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Sedang Upload...`;
+
             const user = auth.currentUser;
+            
             try {
                 const fileName = `${currentUserId}_${Date.now()}_${file.name}`;
                 const storageRef = ref(storage, 'images/' + fileName);
@@ -376,10 +381,12 @@
             }
         };
 
+        // --- URL & SHARE ---
         function updateUrlState(params) { try { const url = new URL(window.location); if (params.view) url.searchParams.set('view', params.view); if (params.id) url.searchParams.set('id', params.id); else url.searchParams.delete('id'); window.history.pushState({}, '', url); } catch (e) {} }
         window.addEventListener('popstate', () => { const params = new URLSearchParams(window.location.search); const view = params.get('view') || 'gallery'; const id = params.get('id'); if (view !== currentView) window.switchView(view); if (id) { const itemIndex = allItems.findIndex(i => i.id === id); if (itemIndex !== -1) { modalItems = allItems; updateModalContent(itemIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; currentModalIndex = itemIndex; } } else { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; } });
         window.shareItem = async (itemId) => { const item = allItems.find(i => i.id === itemId); if (!item) return; let shareUrl = window.location.href; try { const url = new URL(window.location.origin + window.location.pathname); url.searchParams.set('view', 'gallery'); url.searchParams.set('id', itemId); shareUrl = url.toString(); } catch (e) {} const shareData = { title: 'Galeri Promp', text: `Lihat promp menarik ini: "${item.prompt}"`, url: shareUrl }; if (navigator.share) { try { await navigator.share(shareData); } catch (err) {} } else { copyToClipboard(shareUrl); notify('Pautan gambar disalin!', 'success'); } };
 
+        // --- UI HELPERS ---
         window.toggleMobileMenu = () => {
             const sidebar = els.mobileSidebar; const backdrop = els.mobileBackdrop; const isClosed = sidebar.classList.contains('translate-x-full');
             if (isClosed) { sidebar.classList.remove('translate-x-full'); sidebar.classList.add('translate-x-0'); backdrop.classList.remove('hidden'); setTimeout(() => backdrop.classList.remove('opacity-0'), 10); } 
@@ -392,6 +399,7 @@
         }
         function scrollToBottomComments() { setTimeout(() => { if (window.innerWidth < 768) els.modalMobileScrollContainer.scrollTop = els.modalMobileScrollContainer.scrollHeight; else els.modalTextContent.scrollTop = els.modalTextContent.scrollHeight; }, 200); }
 
+        // --- PROFILE & OTHERS ---
         window.showUserProfile = async (uid) => {
             if(!uid) return; profileUserId = uid; currentView = 'profile'; updateUrlState({ view: 'profile' });
             els.gallery.classList.add('hidden'); els.mainControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden'); els.viewTitle.classList.add('hidden'); els.profileViewContainer.classList.remove('hidden');
