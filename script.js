@@ -406,5 +406,5 @@ function listenToComments(itemId) { if (commentsUnsubscribe) commentsUnsubscribe
         Object.keys(els.navs).forEach(key => { if(els.navs[key] && key !== 'myprofile') els.navs[key].onclick = () => switchView(key); });
         
         document.addEventListener('DOMContentLoaded', init);
-    </script>
+
 
