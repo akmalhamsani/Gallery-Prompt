@@ -449,7 +449,7 @@
         if(els.navs.myprofile) { els.navs.myprofile.onclick = () => { if(currentUserId) window.showUserProfile(currentUserId); else notify("Sila log masuk dahulu.", 'error'); }; }
         if(els.mobileNavMyProfile) { els.mobileNavMyProfile.onclick = () => { if(currentUserId) { window.showUserProfile(currentUserId); window.toggleMobileMenu(); } else { notify("Sila log masuk dahulu.", 'error'); } }; }
         Object.keys(els.navs).forEach(key => { if(els.navs[key] && key !== 'myprofile') els.navs[key].onclick = () => switchView(key); });
-        document.addEventListener('DOMContentLoaded', init);
+        document.addEventListener('DOMContentLoaded',);
     </script>
 </body>
 </html>
