@@ -44,7 +44,7 @@
                     </div>
                 </div>
 
-                <!-- DESKTOP NAVIGATION -->
+                <!-- DESKTOP NAV -->
                 <div id="desktop-controls" class="hidden md:flex flex-col items-end gap-2">
                     <button id="login-btn" class="w-auto bg-blue-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">Log Masuk</button>
                     <div id="user-controls" class="hidden flex flex-wrap justify-end items-center gap-2">
@@ -71,8 +71,7 @@
                 </div>
             </div>
 
-            <!-- Borang Tambah (UPLOAD VERSION) -->
-            <!-- Pastikan ID elemen di sini sepadan dengan JavaScript -->
+            <!-- Borang Tambah -->
             <div id="add-form-container" class="hidden mb-10 px-4">
                 <form id="add-form" class="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto border-l-4 border-green-500">
                     <div class="flex justify-between items-center mb-4">
@@ -80,7 +79,7 @@
                         <button type="button" onclick="window.toggleAddForm()" class="text-gray-400 hover:text-red-500 text-xl">&times;</button>
                     </div>
                     <div class="space-y-4">
-                        <!-- Input Fail Gambar (Gunakan ID: image-file) -->
+                        <!-- Input Fail Gambar -->
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Gambar</label>
                             <input type="file" id="image-file" accept="image/*" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
@@ -268,10 +267,8 @@
             approveAllBtn: document.getElementById('approve-all-btn'),
             approveAllCount: document.getElementById('approve-all-count'),
             
-            // Elements for Upload
             imageFile: document.getElementById('image-file'),
             
-            // Mobile Elements
             mobileMenuBtn: document.getElementById('mobile-menu-toggle'),
             mobileSidebar: document.getElementById('mobile-sidebar'),
             mobileBackdrop: document.getElementById('mobile-backdrop'),
@@ -289,7 +286,6 @@
             mobileNavLiked: document.getElementById('mobile-nav-liked'),
             mobileNavPending: document.getElementById('mobile-nav-pending'),
 
-            // Profile Elements
             profileViewContainer: document.getElementById('profile-view-container'),
             profileImg: document.getElementById('profile-img'),
             profileName: document.getElementById('profile-name'),
@@ -337,28 +333,21 @@
 
         els.sizeSlider.addEventListener('input', (e) => document.documentElement.style.setProperty('--img-height', `${e.target.value}px`));
 
-        // --- ADD ITEM (UPLOAD) LOGIC ---
         window.addItem = async (e) => {
             e.preventDefault();
             if (!currentUserId) return notify("Sila log masuk.", 'error');
-            
             const file = els.imageFile.files[0];
             if (!file) return notify("Sila pilih gambar untuk dimuat naik!", 'error');
-
             const prompt = document.getElementById('image-prompt').value.trim();
             const category = els.catSelect.value || document.getElementById('new-category').value.trim() || 'Umum';
-
             els.submitBtn.disabled = true;
             els.submitBtn.innerHTML = `<svg class="animate-spin h-5 w-5 mr-3 text-white" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Sedang Upload...`;
-
             const user = auth.currentUser;
-            
             try {
                 const fileName = `${currentUserId}_${Date.now()}_${file.name}`;
                 const storageRef = ref(storage, 'images/' + fileName);
                 await uploadBytes(storageRef, file);
                 const downloadURL = await getDownloadURL(storageRef);
-                
                 const newItem = {
                     imageUrl: downloadURL,
                     prompt: prompt,
@@ -369,19 +358,15 @@
                     status: 'pending',
                     likes: []
                 };
-
                 if (document.getElementById('new-category').value.trim()) {
                      setDoc(doc(db, categoriesRef.path, newItem.category), { name: newItem.category }).catch(console.error);
                 }
-
                 await addDoc(galleryRef, newItem);
-                
                 els.addForm.reset();
                 els.imageFile.value = ""; 
                 els.toggleFormBtn.click(); 
                 notify("Gambar berjaya diupload! Menunggu kelulusan admin.");
                 switchView('pending');
-
             } catch (err) {
                 console.error("Upload error:", err);
                 notify("Gagal muat naik gambar: " + err.message, 'error');
@@ -391,12 +376,10 @@
             }
         };
 
-        // --- URL & SHARE ---
         function updateUrlState(params) { try { const url = new URL(window.location); if (params.view) url.searchParams.set('view', params.view); if (params.id) url.searchParams.set('id', params.id); else url.searchParams.delete('id'); window.history.pushState({}, '', url); } catch (e) {} }
         window.addEventListener('popstate', () => { const params = new URLSearchParams(window.location.search); const view = params.get('view') || 'gallery'; const id = params.get('id'); if (view !== currentView) window.switchView(view); if (id) { const itemIndex = allItems.findIndex(i => i.id === id); if (itemIndex !== -1) { modalItems = allItems; updateModalContent(itemIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; currentModalIndex = itemIndex; } } else { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; } });
         window.shareItem = async (itemId) => { const item = allItems.find(i => i.id === itemId); if (!item) return; let shareUrl = window.location.href; try { const url = new URL(window.location.origin + window.location.pathname); url.searchParams.set('view', 'gallery'); url.searchParams.set('id', itemId); shareUrl = url.toString(); } catch (e) {} const shareData = { title: 'Galeri Promp', text: `Lihat promp menarik ini: "${item.prompt}"`, url: shareUrl }; if (navigator.share) { try { await navigator.share(shareData); } catch (err) {} } else { copyToClipboard(shareUrl); notify('Pautan gambar disalin!', 'success'); } };
 
-        // --- UI HELPERS ---
         window.toggleMobileMenu = () => {
             const sidebar = els.mobileSidebar; const backdrop = els.mobileBackdrop; const isClosed = sidebar.classList.contains('translate-x-full');
             if (isClosed) { sidebar.classList.remove('translate-x-full'); sidebar.classList.add('translate-x-0'); backdrop.classList.remove('hidden'); setTimeout(() => backdrop.classList.remove('opacity-0'), 10); } 
@@ -409,7 +392,6 @@
         }
         function scrollToBottomComments() { setTimeout(() => { if (window.innerWidth < 768) els.modalMobileScrollContainer.scrollTop = els.modalMobileScrollContainer.scrollHeight; else els.modalTextContent.scrollTop = els.modalTextContent.scrollHeight; }, 200); }
 
-        // --- PROFILE & OTHERS ---
         window.showUserProfile = async (uid) => {
             if(!uid) return; profileUserId = uid; currentView = 'profile'; updateUrlState({ view: 'profile' });
             els.gallery.classList.add('hidden'); els.mainControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden'); els.viewTitle.classList.add('hidden'); els.profileViewContainer.classList.remove('hidden');
@@ -439,7 +421,7 @@
         window.clearUserFilter = () => { currentUserIdFilter = null; els.userFilterChip.classList.add('hidden'); renderGallery(); };
         window.toggleLike = async (itemId, ownerId) => { if (!currentUserId) return notify("Sila log masuk untuk like.", 'error'); const item = allItems.find(i => i.id === itemId); if(!item) return; const isLiked = item.likes && item.likes.includes(currentUserId); const itemRef = doc(db, galleryRef.path, itemId); try { if (isLiked) await updateDoc(itemRef, { likes: arrayRemove(currentUserId) }); else { await updateDoc(itemRef, { likes: arrayUnion(currentUserId) }); notify("Liked!", 'success'); if (ownerId && ownerId !== currentUserId) { const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${ownerId}/notifications`); const user = auth.currentUser; addDoc(notifRef, { type: 'like', fromName: user.displayName || 'Seseorang', itemId: itemId, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error); } } } catch (err) { console.error(err); notify("Gagal like.", 'error'); } };
         function renderGallery() { if(currentView === 'profile') return; let filtered = allItems.filter(item => { const itemCat = item.category || 'Umum'; return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter); }); let itemsToShow = []; if (currentView === 'gallery') itemsToShow = filtered.filter(item => item.status === 'approved' || !item.status); else if (currentView === 'liked') itemsToShow = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId)); else if (currentView === 'myprompt') itemsToShow = filtered.filter(item => item.userId === currentUserId); else if (currentView === 'pending') itemsToShow = filtered.filter(item => item.userId === currentUserId && item.status === 'pending'); else if (currentView === 'request') itemsToShow = filtered.filter(item => item.status === 'pending'); if(currentView === 'request') els.approveAllCount.textContent = itemsToShow.length; els.gallery.innerHTML = ''; if (itemsToShow.length === 0) { els.gallery.innerHTML = `<p class="text-gray-500 w-full text-center py-10">Tiada item dijumpai.</p>`; return; } itemsToShow.forEach(item => { const card = document.createElement('div'); card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative flex-grow hover:shadow-xl transition-shadow select-none overflow-hidden'; const isOwner = currentUserId && item.userId === currentUserId; const isPending = item.status === 'pending'; const canDelete = isOwner || isSuperUser; const likes = item.likes || []; const isLikedByMe = currentUserId && likes.includes(currentUserId); const heartColor = isLikedByMe ? 'text-red-500' : 'text-white'; const heartFill = isLikedByMe ? 'currentColor' : 'none'; const deleteBtn = canDelete ? `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-10 right-1 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : ''; let approveBtn = (isSuperUser && isPending && currentView === 'request') ? `<button onclick="event.stopPropagation(); window.approveItem('${item.id}')" class="approve-btn absolute top-1 left-1 z-20 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:bg-green-700 flex items-center gap-1">✓ Approve</button>` : ''; let statusBadge = (!isSuperUser && (currentView === 'myprompt' || currentView === 'pending')) ? `<span class="absolute top-1 left-1 z-10 ${isPending?'bg-yellow-500':'bg-green-500'} text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm uppercase font-bold tracking-wider opacity-90">${isPending?'Pending':'Approved'}</span>` : ''; const viewBtn = `<button onclick="event.stopPropagation(); window.openModal('${item.id}')" class="view-btn absolute bottom-2 right-2 z-20 bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black backdrop-blur-sm" title="Lihat Penuh"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>`; card.onclick = (e) => { if (!e.target.closest('button') && !e.target.closest('span[onclick]')) copyToClipboard(item.prompt); }; card.innerHTML = `<div class="relative overflow-hidden w-full h-full"><div class="absolute top-0 left-0 right-0 p-2 bg-black/50 flex justify-between items-center gap-2 z-10"><span onclick="event.stopPropagation(); window.filterByCategory('${item.category || 'Umum'}')" class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded uppercase tracking-wide truncate max-w-[120px] cursor-pointer hover:bg-blue-200 transition-colors">${item.category || 'Umum'}</span><span onclick="event.stopPropagation(); window.showUserProfile('${item.userId}')" class="text-[10px] text-white/90 truncate cursor-pointer hover:text-purple-300 hover:underline">By: ${item.userName || 'User'}</span></div>${deleteBtn} ${approveBtn} ${statusBadge} ${viewBtn}<img src="${item.imageUrl}" class="dynamic-img w-auto min-w-full object-cover block transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=Error'"><div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent pointer-events-none z-10 flex items-end justify-between gap-2"><div class="pointer-events-auto"><button onclick="event.stopPropagation(); window.toggleLike('${item.id}', '${item.userId}'); this.firstElementChild.classList.add('like-anim'); setTimeout(()=>this.firstElementChild.classList.remove('like-anim'),400);" class="flex items-center gap-1 text-white hover:scale-110 transition-transform bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm"><svg class="w-5 h-5 ${heartColor} transition-colors duration-300" fill="${heartFill}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><span class="text-xs font-bold">${likes.length}</span></button><button onclick="event.stopPropagation(); window.shareItem('${item.id}')" class="flex items-center gap-1 text-white hover:scale-110 transition-transform bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm ml-2"><svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button></div><p class="text-sm text-white line-clamp-1 font-medium text-right flex-1 opacity-90">${item.prompt}</p></div></div>`; els.gallery.appendChild(card); }); for(let i=0; i<8; i++) els.gallery.appendChild(document.createElement('div')).className = 'flex-grow h-0 p-0 m-0 opacity-0 border-0'; }
-        function updateModalContent(index) { if (index < 0 || index >= modalItems.length) return; const item = modalItems[index]; currentModalIndex = index; els.modalImg.src = item.imageUrl; els.modalPrompt.textContent = item.prompt; els.modalCategory.textContent = item.category || 'Umum'; els.modalUploader.innerHTML = `By: <span class="cursor-pointer hover:underline" onclick="window.showUserProfile('${item.userId}')">${item.userName || 'User'}</span>`; els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt); els.modalShareBtn.onclick = () => window.shareItem(item.id); const likes = item.likes || []; const isLikedByMe = currentUserId && likes.includes(currentUserId); els.modalLikeCount.textContent = likes.length; if (isLikedByMe) { els.modalHeartIcon.classList.add('text-red-500', 'fill-current'); els.modalHeartIcon.classList.remove('text-gray-500', 'fill-none'); els.modalLikeBtn.classList.add('bg-pink-50', 'border-pink-200'); } else { els.modalHeartIcon.classList.add('text-gray-500', 'fill-none'); els.modalHeartIcon.classList.remove('text-red-500', 'fill-current'); els.modalLikeBtn.classList.remove('bg-pink-50', 'border-pink-200'); } els.modalLikeBtn.onclick = () => { els.modalHeartIcon.classList.add('like-anim'); setTimeout(()=>els.modalHeartIcon.classList.remove('like-anim'), 400); window.toggleLike(item.id, item.userId); }; listenToComments(item.id); els.prevBtn.classList.toggle('hidden', currentModalIndex === 0); els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1); }
+        function updateModalContent(index) { if (index < 0 || index >= modalItems.length) return; const item = modalItems[index]; currentModalIndex = index; els.modalImg.src = item.imageUrl; els.modalPrompt.textContent = item.prompt; els.modalCategory.textContent = item.category || 'Umum'; els.modalUploader.innerHTML = `By: <span class="cursor-pointer hover:underline" onclick="window.showUserProfile('${item.userId}')">${item.userName || 'User'}</span>`; els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt); els.modalShareBtn.onclick = () => window.shareItem(item.id); const likes = item.likes || []; const isLikedByMe = currentUserId && likes.includes(currentUserId); els.modalLikeCount.textContent = likes.length; if (isLikedByMe) { els.modalHeartIcon.classList.add('text-red-500', 'fill-current'); els.modalHeartIcon.classList.remove('text-gray-500', 'fill-none'); els.modalLikeBtn.classList.add('bg-pink-50', 'border-pink-200'); } else { els.modalHeartIcon.classList.add('text-gray-500', 'fill-none'); els.modalHeartIcon.classList.remove('text-red-500', 'fill-current'); els.modalLikeBtn.classList.remove('bg-pink-50', 'border-pink-200'); } els.modalLikeBtn.onclick = () => { els.modalHeartIcon.classList.add('like-anim'); setTimeout(()=>els.modalHeartIcon.classList.remove('like-anim'), 400); window.toggleLike(item.id, item.userId); }; listenToComments(item.id); els.prevBtn.classList.toggle('hidden', currentModalIndex === 0); els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1); setTimeout(() => scrollToBottomComments(), 300); }
         window.openModal = (id) => { let filtered = allItems.filter(item => { const itemCat = item.category || 'Umum'; return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter); }); if (currentView === 'profile') filtered = allItems.filter(i => i.userId === profileUserId && (i.status === 'approved' || !i.status || (currentUserId === profileUserId))); else if (currentView === 'gallery') filtered = filtered.filter(item => item.status === 'approved' || !item.status); else if (currentView === 'liked') filtered = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId)); else if (currentView === 'myprompt') filtered = filtered.filter(item => item.userId === currentUserId); else if (currentView === 'pending') filtered = filtered.filter(item => item.userId === currentUserId && item.status === 'pending'); else if (currentView === 'request') filtered = filtered.filter(item => item.status === 'pending'); modalItems = filtered; const initialIndex = modalItems.findIndex(i => i.id === id); if (initialIndex === -1) return; updateModalContent(initialIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; updateUrlState({ id: id, view: currentView }); };
         window.closeModal = () => { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; if(commentsUnsubscribe) commentsUnsubscribe(); Object.values(replyUnsubscribes).forEach(un=>un()); replyUnsubscribes={}; updateUrlState({ view: currentView }); };
         window.showPrevItem = () => { if (currentModalIndex > 0) { updateModalContent(currentModalIndex - 1); updateUrlState({ id: modalItems[currentModalIndex - 1].id, view: currentView }); } }; window.showNextItem = () => { if (currentModalIndex < modalItems.length - 1) { updateModalContent(currentModalIndex + 1); updateUrlState({ id: modalItems[currentModalIndex + 1].id, view: currentView }); } };
