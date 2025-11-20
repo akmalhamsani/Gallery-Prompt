@@ -3,7 +3,7 @@ import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signO
 import { getFirestore, collection, addDoc, onSnapshot, query, doc, deleteDoc, setDoc, updateDoc, writeBatch, arrayUnion, arrayRemove, orderBy, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-// --- CONFIG ---
+// --- 1. KONFIGURASI ---
 const firebaseConfig = {
     apiKey: "AIzaSyCpOw2nHuxHpKfkDxZzAe4nyqXrmhZZbSM",
     authDomain: "galeri-promp-saya.firebaseapp.com",
@@ -15,7 +15,7 @@ const firebaseConfig = {
 const appId = 'galeri-saya-app';
 const SUPER_USER_EMAIL = 'akmalhamsani@gmail.com';
 
-// --- STATE ---
+// --- 2. STATE (Keadaan Aplikasi) ---
 let db, auth, storage, galleryRef, categoriesRef;
 let allItems = [], currentUserId = null, isSuperUser = false;
 let currentView = 'gallery', currentCategory = 'all', currentUserIdFilter = null;
@@ -23,30 +23,38 @@ let modalItems = [], currentModalIndex = -1, touchstartX = 0;
 let commentsUnsubscribe = null;
 let replyUnsubscribes = {};
 let profileUserId = null; 
-let isInitialLoad = true; 
+let isInitialLoad = true;
 
-// --- ELEMENTS ---
+// --- 3. ELEMEN DOM ---
 const els = {
+    // Auth & User
     loginBtn: document.getElementById('login-btn'),
     userControls: document.getElementById('user-controls'),
     userWelcome: document.getElementById('user-welcome'),
     logoutBtn: document.getElementById('logout-btn'),
+    
+    // Forms & Buttons
     toggleFormBtn: document.getElementById('toggle-form-btn'),
     addFormContainer: document.getElementById('add-form-container'),
     addForm: document.getElementById('add-form'),
     submitBtn: document.getElementById('submit-button'),
+    imageFile: document.getElementById('image-file'),
+    
+    // Gallery & Controls
     gallery: document.getElementById('gallery-container'),
     mainControls: document.getElementById('main-controls-bar'),
     catTabs: document.getElementById('category-tabs'),
-    userFilterChip: document.getElementById('user-filter-chip'),
-    userFilterName: document.getElementById('user-filter-name'),
     catSelect: document.getElementById('category-select'),
     viewTitle: document.getElementById('current-view-title'),
     approveAllBtn: document.getElementById('approve-all-btn'),
     approveAllCount: document.getElementById('approve-all-count'),
+    sizeSlider: document.getElementById('size-slider'),
     
-    imageFile: document.getElementById('image-file'),
+    // Filters
+    userFilterChip: document.getElementById('user-filter-chip'),
+    userFilterName: document.getElementById('user-filter-name'),
     
+    // Mobile Menu
     mobileMenuBtn: document.getElementById('mobile-menu-toggle'),
     mobileSidebar: document.getElementById('mobile-sidebar'),
     mobileBackdrop: document.getElementById('mobile-backdrop'),
@@ -64,6 +72,7 @@ const els = {
     mobileNavLiked: document.getElementById('mobile-nav-liked'),
     mobileNavPending: document.getElementById('mobile-nav-pending'),
 
+    // Profile Page
     profileViewContainer: document.getElementById('profile-view-container'),
     profileImg: document.getElementById('profile-img'),
     profileName: document.getElementById('profile-name'),
@@ -73,6 +82,7 @@ const els = {
     bioInput: document.getElementById('bio-input'),
     profileGalleryGrid: document.getElementById('profile-gallery-grid'),
 
+    // Modal (Popup)
     modal: document.getElementById('view-modal'),
     modalImg: document.getElementById('modal-img'),
     modalPrompt: document.getElementById('modal-prompt'),
@@ -94,10 +104,13 @@ const els = {
     modalImageArea: document.getElementById('modal-image-area'),
     modalMobileScrollContainer: document.getElementById('modal-mobile-scroll-container'),
     modalTextContent: document.getElementById('modal-text-content'),
-    sizeSlider: document.getElementById('size-slider'),
+
+    // Notification
     notif: document.getElementById('notification'),
     notifMsg: document.getElementById('notif-msg'),
     notifIcon: document.getElementById('notif-icon'),
+    
+    // Nav Buttons Reference
     navs: { 
         gallery: document.getElementById('nav-gallery'), 
         liked: document.getElementById('nav-liked'), 
@@ -106,12 +119,18 @@ const els = {
         pending: document.getElementById('nav-pending'), 
         request: document.getElementById('nav-request') 
     },
-    counts: { pending: document.getElementById('pending-count-user'), request: document.getElementById('request-count-admin') }
+    counts: { 
+        pending: document.getElementById('pending-count-user'), 
+        request: document.getElementById('request-count-admin') 
+    }
 };
 
-// --- HELPERS ---
+// --- 4. FUNGSI PEMBANTU (HELPERS) - Diletakkan di atas supaya sedia ---
+
+// Slider Size
 els.sizeSlider.addEventListener('input', (e) => document.documentElement.style.setProperty('--img-height', `${e.target.value}px`));
 
+// Notification
 function notify(msg, type='success') { 
     els.notifMsg.textContent = msg; 
     els.notifIcon.textContent = type==='error'?'⚠️':(msg.includes('komen')?'💬':(msg.includes('Like')?'❤️':(msg.includes('balas')?'↩️':'🔔'))); 
@@ -120,12 +139,13 @@ function notify(msg, type='success') {
     setTimeout(() => { els.notif.classList.add('translate-y-10', 'opacity-0'); setTimeout(()=>els.notif.classList.add('hidden'), 300); }, 3000); 
 }
 
+// Copy to Clipboard
 function copyToClipboard(text) { 
     const t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); 
     try { document.execCommand('copy'); notify('Promp disalin!'); } catch (e) {} document.body.removeChild(t); 
 }
 
-// Fungsi ini hanya didefinisikan SEKALI sahaja di sini
+// URL Management
 function updateUrlState(params) { 
     try { 
         const url = new URL(window.location); 
@@ -136,7 +156,7 @@ function updateUrlState(params) {
     } catch (e) {} 
 }
 
-// Fungsi ini hanya didefinisikan SEKALI sahaja di sini
+// Scroll Helper
 function scrollToBottomComments() { 
     setTimeout(() => { 
         if (window.innerWidth < 768) els.modalMobileScrollContainer.scrollTop = els.modalMobileScrollContainer.scrollHeight; 
@@ -144,6 +164,33 @@ function scrollToBottomComments() {
     }, 200); 
 }
 
+// Update Counts (Fungsi yang hilang sebelum ini)
+function updateCounts() { 
+    if(currentUserId){ 
+        const pendingUser = allItems.filter(i => i.userId === currentUserId && i.status === 'pending').length; 
+        if(pendingUser > 0) { 
+            els.counts.pending.textContent = pendingUser; 
+            els.counts.pending.classList.remove('hidden'); 
+            if(els.mobilePendingCount) { els.mobilePendingCount.textContent = pendingUser; els.mobilePendingCount.classList.remove('hidden'); }
+        } else { 
+            els.counts.pending.classList.add('hidden'); 
+            if(els.mobilePendingCount) els.mobilePendingCount.classList.add('hidden'); 
+        } 
+    } 
+    const pendingAll = allItems.filter(i => i.status === 'pending').length; 
+    if(pendingAll > 0) { 
+        els.counts.request.textContent = pendingAll; 
+        els.counts.request.classList.remove('hidden'); 
+        if(els.mobileRequestCount) { els.mobileRequestCount.textContent = pendingAll; els.mobileRequestCount.classList.remove('hidden'); }
+        if(els.mobileNavRequest) els.mobileNavRequest.classList.remove('hidden'); 
+    } else { 
+        els.counts.request.classList.add('hidden'); 
+        if(els.mobileRequestCount) els.mobileRequestCount.classList.add('hidden'); 
+        if(els.mobileNavRequest) els.mobileNavRequest.classList.add('hidden'); 
+    } 
+}
+
+// Image Compression
 async function compressImage(file) {
     return new Promise((resolve, reject) => {
         const maxWidth = 1280; const maxHeight = 1280; const quality = 0.7;
@@ -164,7 +211,34 @@ async function compressImage(file) {
     });
 }
 
-// --- CORE LOGIC ---
+// --- 5. UI UPDATE FUNCTIONS ---
+
+function updateMobileMenuUI(user) {
+    if(user) { 
+        els.mobileLoginBtn.classList.add('hidden'); 
+        els.mobileUserInfo.classList.remove('hidden'); 
+        els.mobileUsername.textContent = user.displayName; 
+        els.mobileUserLinks.classList.remove('hidden'); 
+        els.mobileAddBtn.classList.remove('hidden'); 
+    } else { 
+        els.mobileLoginBtn.classList.remove('hidden'); 
+        els.mobileUserInfo.classList.add('hidden'); 
+        els.mobileUserLinks.classList.add('hidden'); 
+        els.mobileAddBtn.classList.add('hidden'); 
+    }
+}
+
+function updateMobileActiveState(viewName) {
+    const btns = [els.mobileNavGallery, els.mobileNavMyProfile, els.mobileNavLiked, els.mobileNavPending, els.mobileNavRequest];
+    btns.forEach(b => { if(b) b.classList.remove('active'); });
+    if(viewName === 'gallery' && els.mobileNavGallery) els.mobileNavGallery.classList.add('active');
+    else if(viewName === 'profile' && els.mobileNavMyProfile) els.mobileNavMyProfile.classList.add('active');
+    else if(viewName === 'liked' && els.mobileNavLiked) els.mobileNavLiked.classList.add('active');
+    else if(viewName === 'pending' && els.mobileNavPending) els.mobileNavPending.classList.add('active');
+    else if(viewName === 'request' && els.mobileNavRequest) els.mobileNavRequest.classList.add('active');
+}
+
+// --- 6. CORE LOGIC & ACTIONS ---
 
 // Upload
 window.addItem = async (e) => {
@@ -191,37 +265,6 @@ window.addItem = async (e) => {
     finally { els.submitBtn.disabled = false; els.submitBtn.innerText = "Hantar untuk Approval"; }
 };
 
-// Popstate Listener for Back Button
-window.addEventListener('popstate', () => { 
-    const params = new URLSearchParams(window.location.search); 
-    const view = params.get('view') || 'gallery'; 
-    const id = params.get('id'); 
-    if (view !== currentView) window.switchView(view); 
-    if (id) { 
-        const itemIndex = allItems.findIndex(i => i.id === id); 
-        if (itemIndex !== -1) { 
-            modalItems = allItems; 
-            updateModalContent(itemIndex); 
-            els.modal.classList.remove('hidden'); 
-            document.body.style.overflow = 'hidden'; 
-            currentModalIndex = itemIndex; 
-        } 
-    } else { 
-        els.modal.classList.add('hidden'); 
-        document.body.style.overflow = ''; 
-        currentModalIndex = -1; 
-    } 
-});
-
-// Share
-window.shareItem = async (itemId) => { 
-    const item = allItems.find(i => i.id === itemId); if (!item) return; 
-    let shareUrl = window.location.href; 
-    try { const url = new URL(window.location.origin + window.location.pathname); url.searchParams.set('view', 'gallery'); url.searchParams.set('id', itemId); shareUrl = url.toString(); } catch (e) {} 
-    const shareData = { title: 'Galeri Promp', text: `Lihat promp: "${item.prompt}"`, url: shareUrl }; 
-    if (navigator.share) { try { await navigator.share(shareData); } catch (err) {} } else { copyToClipboard(shareUrl); notify('Pautan disalin!', 'success'); } 
-};
-
 // UI Toggles
 window.toggleMobileMenu = () => {
     const sidebar = els.mobileSidebar; const backdrop = els.mobileBackdrop; const isClosed = sidebar.classList.contains('translate-x-full');
@@ -229,21 +272,6 @@ window.toggleMobileMenu = () => {
     else { sidebar.classList.remove('translate-x-0'); sidebar.classList.add('translate-x-full'); backdrop.classList.add('opacity-0'); setTimeout(() => backdrop.classList.add('hidden'), 300); }
 };
 window.toggleAddForm = () => { els.addFormContainer.classList.toggle('hidden'); if (!els.mobileSidebar.classList.contains('translate-x-full')) window.toggleMobileMenu(); };
-
-function updateMobileMenuUI(user) {
-    if(user) { els.mobileLoginBtn.classList.add('hidden'); els.mobileUserInfo.classList.remove('hidden'); els.mobileUsername.textContent = user.displayName; els.mobileUserLinks.classList.remove('hidden'); els.mobileAddBtn.classList.remove('hidden'); } 
-    else { els.mobileLoginBtn.classList.remove('hidden'); els.mobileUserInfo.classList.add('hidden'); els.mobileUserLinks.classList.add('hidden'); els.mobileAddBtn.classList.add('hidden'); }
-}
-
-function updateMobileActiveState(viewName) {
-    const btns = [els.mobileNavGallery, els.mobileNavMyProfile, els.mobileNavLiked, els.mobileNavPending, els.mobileNavRequest];
-    btns.forEach(b => { if(b) b.classList.remove('active'); });
-    if(viewName === 'gallery' && els.mobileNavGallery) els.mobileNavGallery.classList.add('active');
-    else if(viewName === 'profile' && els.mobileNavMyProfile) els.mobileNavMyProfile.classList.add('active');
-    else if(viewName === 'liked' && els.mobileNavLiked) els.mobileNavLiked.classList.add('active');
-    else if(viewName === 'pending' && els.mobileNavPending) els.mobileNavPending.classList.add('active');
-    else if(viewName === 'request' && els.mobileNavRequest) els.mobileNavRequest.classList.add('active');
-}
 
 // View Switcher
 window.switchView = function(viewName) {
@@ -285,11 +313,12 @@ window.clearUserFilter = () => { currentUserIdFilter = null; els.userFilterChip.
 window.deleteItem = async (id) => { if(confirm("Padam item ini?")) try { await deleteDoc(doc(db, galleryRef.path, id)); notify("Item dipadam."); } catch(err) { notify("Gagal memadam.", 'error'); } };
 window.approveItem = async (id) => { try { await updateDoc(doc(db, galleryRef.path, id), { status: 'approved' }); notify("Item diluluskan!"); } catch(err) { notify("Gagal approve.", 'error'); } };
 window.approveAll = async () => { if(!confirm("Luluskan semua?")) return; const batch = writeBatch(db); allItems.filter(i => i.status === 'pending').forEach(i => batch.update(doc(db, galleryRef.path, i.id), { status: 'approved' })); try { await batch.commit(); notify("Semua diluluskan!"); } catch(err) { notify("Gagal.", 'error'); } };
+window.shareItem = async (itemId) => { const item = allItems.find(i => i.id === itemId); if (!item) return; let shareUrl = window.location.href; try { const url = new URL(window.location.origin + window.location.pathname); url.searchParams.set('view', 'gallery'); url.searchParams.set('id', itemId); shareUrl = url.toString(); } catch (e) {} const shareData = { title: 'Galeri Promp', text: `Lihat promp menarik ini: "${item.prompt}"`, url: shareUrl }; if (navigator.share) { try { await navigator.share(shareData); } catch (err) {} } else { copyToClipboard(shareUrl); notify('Pautan gambar disalin!', 'success'); } };
 window.toggleLike = async (itemId, ownerId) => { if (!currentUserId) return notify("Sila log masuk untuk like.", 'error'); const item = allItems.find(i => i.id === itemId); if(!item) return; const isLiked = item.likes && item.likes.includes(currentUserId); const itemRef = doc(db, galleryRef.path, itemId); try { if (isLiked) await updateDoc(itemRef, { likes: arrayRemove(currentUserId) }); else { await updateDoc(itemRef, { likes: arrayUnion(currentUserId) }); notify("Liked!", 'success'); if (ownerId && ownerId !== currentUserId) { const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${ownerId}/notifications`); const user = auth.currentUser; addDoc(notifRef, { type: 'like', fromName: user.displayName || 'Seseorang', itemId: itemId, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error); } } } catch (err) { console.error(err); notify("Gagal like.", 'error'); } };
 
+// Render
 function renderGallery() {
     if(currentView === 'profile') return;
-    
     let filtered = allItems.filter(item => { const itemCat = item.category || 'Umum'; return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter); });
     let itemsToShow = [];
     if (currentView === 'gallery') itemsToShow = filtered.filter(item => item.status === 'approved' || !item.status);
@@ -297,10 +326,8 @@ function renderGallery() {
     else if (currentView === 'myprompt') itemsToShow = filtered.filter(item => item.userId === currentUserId);
     else if (currentView === 'pending') itemsToShow = filtered.filter(item => item.userId === currentUserId && item.status === 'pending');
     else if (currentView === 'request') itemsToShow = filtered.filter(item => item.status === 'pending');
-    
     if(currentView === 'request') els.approveAllCount.textContent = itemsToShow.length;
     els.gallery.innerHTML = ''; if (itemsToShow.length === 0) { els.gallery.innerHTML = `<p class="text-gray-500 w-full text-center py-10">Tiada item dijumpai.</p>`; return; }
-
     itemsToShow.forEach(item => {
         const card = document.createElement('div');
         card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative flex-grow hover:shadow-xl transition-shadow select-none overflow-hidden';
@@ -334,7 +361,7 @@ window.toggleCommentLike = async (itemId, commentId, commentOwnerId) => { if (!c
 
 function listenToNotifications(uid) { const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${uid}/notifications`); const q = query(notifRef, orderBy('timestamp', 'desc')); onSnapshot(q, (snap) => { snap.docChanges().forEach(async (change) => { if (change.type === 'added') { const data = change.doc.data(); if (!data.read && Date.now() - data.timestamp < 10000) { let msg = "Notifikasi baru"; if(data.type === 'like') msg = `❤️ ${data.fromName} menyukai promp anda`; else if(data.type === 'comment') msg = `💬 ${data.fromName} mengomen promp anda`; else if(data.type === 'like_comment') msg = `❤️ ${data.fromName} menyukai komen anda`; else if(data.type === 'reply_comment') msg = `↩️ ${data.fromName} membalas komen anda`; notify(msg, 'success'); await deleteDoc(change.doc.ref); } } }); }); }
 
-// INIT
+// MAIN INIT
 async function init() { 
     const app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app); galleryRef = collection(db, `/artifacts/${appId}/public/data/gallery`); categoriesRef = collection(db, `/artifacts/${appId}/public/data/categories`); storage = getStorage(app);
     
