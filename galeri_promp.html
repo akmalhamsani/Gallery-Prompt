@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galeri Promp (Mobile Slide Menu)</title>
+    <title>Galeri Promp (Deep Link)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1/plugin/relativeTime.js"></script>
     <script>dayjs.extend(window.dayjs_plugin_relativeTime);</script>
-    <!-- PENTING: type="text/tailwindcss" diperlukan supaya @apply berfungsi -->
     <style type="text/tailwindcss">
         body { font-family: "Inter", sans-serif; overflow-x: hidden; }
         .gallery-item .delete-btn, .gallery-item .approve-btn, .gallery-item .view-btn { opacity: 0; transition: opacity 0.2s ease-in-out; }
@@ -21,11 +20,10 @@
         .nav-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
         .nav-btn { background-color: white; color: #4b5563; border: 1px solid #d1d5db; }
         
-        /* Mobile Nav Buttons (Gaya Senarai Ringkas) */
+        /* Mobile Nav Buttons */
         .mobile-nav-btn { 
             @apply w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg font-semibold transition-colors flex items-center gap-3 border-b border-gray-50; 
         }
-        /* Mobile Active State */
         .mobile-nav-btn.active {
             @apply text-blue-600 bg-blue-50 border-blue-100;
         }
@@ -252,9 +250,18 @@
                     </div>
                     <div class="p-3 bg-white border-t border-gray-200 fixed bottom-0 left-0 w-full z-[60] md:static md:w-full shadow-[0_-4px_10px_rgba(0,0,0,0.1)] md:shadow-none">
                         <div class="flex gap-2 mb-3 max-w-5xl mx-auto md:max-w-none px-2 md:px-0">
-                            <button id="modal-like-btn" class="flex-1 bg-gray-50 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200"><svg id="modal-heart-icon" class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><span id="modal-like-count">0</span></button>
-                            <button id="modal-share-btn" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-blue-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>Kongsi</button>
-                            <button id="modal-copy-btn" class="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>Salin</button>
+                            <button id="modal-like-btn" class="flex-1 bg-gray-50 hover:bg-pink-50 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200">
+                                <svg id="modal-heart-icon" class="w-5 h-5 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                <span id="modal-like-count">0</span>
+                            </button>
+                            <button id="modal-share-btn" class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-blue-200">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
+                                Kongsi
+                            </button>
+                            <button id="modal-copy-btn" class="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-700 py-2 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors border border-gray-200">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                Salin
+                            </button>
                         </div>
                         <div id="comment-input-area" class="relative max-w-5xl mx-auto md:max-w-none px-2 md:px-0"><input type="text" id="comment-input" placeholder="Tulis komen..." class="w-full p-3 pr-10 bg-gray-100 border-0 rounded-full text-sm focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner" onkeypress="if(event.key==='Enter') window.postComment()"><button onclick="window.postComment()" class="absolute right-4 md:right-2 top-1/2 -translate-y-1/2 text-blue-600 hover:text-blue-800 p-1"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg></button></div>
                         <div id="login-to-comment" class="hidden text-center py-2 bg-gray-50 rounded-lg text-xs text-gray-500"><a href="#" onclick="document.getElementById('login-btn').click(); document.getElementById('view-modal').click();" class="text-blue-600 underline">Log masuk</a> untuk komen</div>
@@ -293,6 +300,7 @@
         let commentsUnsubscribe = null;
         let replyUnsubscribes = {};
         let profileUserId = null; 
+        let isInitialLoad = true; 
 
         const els = {
             loginBtn: document.getElementById('login-btn'),
@@ -379,31 +387,66 @@
 
         els.sizeSlider.addEventListener('input', (e) => document.documentElement.style.setProperty('--img-height', `${e.target.value}px`));
 
+        // --- URL STATE MANAGEMENT ---
+        function updateUrlState(params) {
+            try {
+                const url = new URL(window.location);
+                if (params.view) url.searchParams.set('view', params.view);
+                if (params.id) {
+                    url.searchParams.set('id', params.id);
+                } else {
+                    url.searchParams.delete('id');
+                }
+                window.history.pushState({}, '', url);
+            } catch (e) {
+                // Abaikan ralat dalam persekitaran sandbox
+            }
+        }
+        
+        window.addEventListener('popstate', () => {
+            const params = new URLSearchParams(window.location.search);
+            const view = params.get('view') || 'gallery';
+            const id = params.get('id');
+            if (view !== currentView) window.switchView(view);
+            if (id) {
+                const itemIndex = allItems.findIndex(i => i.id === id);
+                if (itemIndex !== -1) {
+                     modalItems = allItems; 
+                     updateModalContent(itemIndex);
+                     els.modal.classList.remove('hidden'); 
+                     document.body.style.overflow = 'hidden';
+                     currentModalIndex = itemIndex;
+                }
+            } else {
+                els.modal.classList.add('hidden'); 
+                document.body.style.overflow = '';
+                currentModalIndex = -1;
+            }
+        });
+
         // --- SHARE FUNCTIONALITY ---
         window.shareItem = async (itemId) => {
             const item = allItems.find(i => i.id === itemId);
             if (!item) return;
+            
+            let shareUrl = window.location.href;
+            try {
+                const url = new URL(window.location.origin + window.location.pathname);
+                url.searchParams.set('view', 'gallery');
+                url.searchParams.set('id', itemId);
+                shareUrl = url.toString();
+            } catch (e) { console.warn("Could not construct clean URL"); }
 
-            const shareData = {
-                title: 'Galeri Promp',
-                text: `Lihat promp menarik ini: "${item.prompt}"`,
-                url: item.imageUrl
-            };
+            const shareData = { title: 'Galeri Promp', text: `Lihat promp menarik ini: "${item.prompt}"`, url: shareUrl };
 
             if (navigator.share) {
-                try {
-                    await navigator.share(shareData);
-                } catch (err) {
-                    console.log('Gagal berkongsi', err);
-                }
+                try { await navigator.share(shareData); } catch (err) { console.log('Gagal berkongsi', err); }
             } else {
-                // Fallback untuk PC
-                copyToClipboard(item.imageUrl);
+                copyToClipboard(shareUrl);
                 notify('Pautan gambar disalin!', 'success');
             }
         };
 
-        // ... existing logic for mobile menu, scroll, profile, etc ...
         window.toggleMobileMenu = () => {
             const sidebar = els.mobileSidebar;
             const backdrop = els.mobileBackdrop;
@@ -432,6 +475,8 @@
         // --- PROFILE LOGIC ---
         window.showUserProfile = async (uid) => {
             if(!uid) return; profileUserId = uid; currentView = 'profile';
+            updateUrlState({ view: 'profile' });
+
             els.gallery.classList.add('hidden'); els.mainControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden'); els.viewTitle.classList.add('hidden'); els.profileViewContainer.classList.remove('hidden');
             Object.values(els.navs).forEach(btn => btn.classList.remove('active')); updateMobileActiveState('profile');
             els.profileName.textContent = "Memuatkan..."; els.profileBio.textContent = ""; els.profileImg.src = "https://placehold.co/150x150?text=Loading";
@@ -456,7 +501,9 @@
 
         // FUNGSI GLOBAL UNTUK HTML ACCESS
         window.switchView = function(viewName) {
-            currentView = viewName; profileUserId = null;
+            currentView = viewName;
+            updateUrlState({ view: viewName });
+            profileUserId = null;
             els.gallery.classList.remove('hidden'); els.mainControls.classList.remove('hidden'); els.addFormContainer.classList.add('hidden'); els.viewTitle.classList.remove('hidden'); els.profileViewContainer.classList.add('hidden'); 
             Object.values(els.navs).forEach(btn => btn.classList.remove('active')); if(els.navs[viewName]) els.navs[viewName].classList.add('active');
             updateMobileActiveState(viewName);
@@ -479,7 +526,7 @@
         window.postReply = async (itemId, commentId, commentOwnerId) => { const input = document.getElementById(`reply-input-${commentId}`); const text = input.value.trim(); if (!text) return; const user = auth.currentUser; const replyData = { text: text, userId: currentUserId, userName: (user.displayName || 'User').split(' ')[0], timestamp: Date.now(), likes: [] }; try { input.value = ''; window.toggleReplyForm(commentId); const repliesRef = collection(db, `${galleryRef.path}/${itemId}/comments/${commentId}/replies`); await addDoc(repliesRef, replyData); if (commentOwnerId && commentOwnerId !== currentUserId) { const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${commentOwnerId}/notifications`); addDoc(notifRef, { type: 'reply_comment', fromName: replyData.userName, itemId: itemId, promptSnippet: text.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error); } } catch (err) { console.error("Reply error:", err); notify("Gagal menghantar balasan.", 'error'); } };
         window.deleteReply = async (itemId, commentId, replyId) => { if(!confirm("Padam balasan ini?")) return; try { await deleteDoc(doc(db, `${galleryRef.path}/${itemId}/comments/${commentId}/replies/${replyId}`)); notify("Balasan dipadam."); } catch(err) { notify("Gagal.", 'error'); } };
         function listenToReplies(itemId, commentId, container) { if (replyUnsubscribes[commentId]) replyUnsubscribes[commentId](); const repliesRef = collection(db, `${galleryRef.path}/${itemId}/comments/${commentId}/replies`); const q = query(repliesRef, orderBy('timestamp', 'asc')); replyUnsubscribes[commentId] = onSnapshot(q, (snapshot) => { container.innerHTML = ''; snapshot.forEach(docSnap => { const r = docSnap.data(); const rid = docSnap.id; const isMyReply = currentUserId && r.userId === currentUserId; const canDelete = isMyReply || isSuperUser; const timeAgo = dayjs(r.timestamp).fromNow(); const div = document.createElement('div'); div.className = 'bg-gray-50 p-2 rounded border-l-2 border-gray-300 text-xs mt-1 group'; div.innerHTML = `<div class="flex justify-between items-start mb-1"><div class="flex items-center gap-2"><span class="font-bold text-gray-700 cursor-pointer hover:underline" onclick="window.showUserProfile('${r.userId}')">${r.userName || 'User'}</span><span class="text-[9px] text-gray-400">${timeAgo}</span></div>${canDelete ? `<button onclick="window.deleteReply('${itemId}', '${commentId}', '${rid}')" class="text-gray-300 hover:text-red-500" title="Padam">&times;</button>` : ''}</div><p class="text-gray-600 leading-tight">${r.text}</p>`; container.appendChild(div); }); }); }
-        function listenToComments(itemId) { if (commentsUnsubscribe) commentsUnsubscribe(); Object.values(replyUnsubscribes).forEach(unsubscribe => unsubscribe()); replyUnsubscribes = {}; const commentsRef = collection(db, `${galleryRef.path}/${itemId}/comments`); const q = query(commentsRef, orderBy('timestamp', 'asc')); commentsUnsubscribe = onSnapshot(q, (snapshot) => { els.commentsList.innerHTML = ''; els.commentCount.textContent = snapshot.size; if (snapshot.empty) { els.commentsList.innerHTML = '<p class="text-center text-gray-400 text-sm italic py-4">Tiada komen lagi.</p>'; return; } snapshot.forEach(docSnap => { const c = docSnap.data(); const cid = docSnap.id; const isMyComment = currentUserId && c.userId === currentUserId; const canDelete = isMyComment || isSuperUser; const timeAgo = dayjs(c.timestamp).fromNow(); const likes = c.likes || []; const isLiked = currentUserId && likes.includes(currentUserId); const likeCount = likes.length; const div = document.createElement('div'); div.className = 'bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm group'; div.innerHTML = `<div class="flex justify-between items-start mb-1"><div class="flex flex-col"><span class="font-bold text-gray-700 text-xs cursor-pointer hover:underline" onclick="window.showUserProfile('${c.userId}')">${c.userName || 'User'}</span><span class="text-[10px] text-gray-400">${timeAgo}</span></div><div class="flex items-center gap-2"><button onclick="window.toggleCommentLike('${itemId}', '${cid}', '${c.userId}')" class="flex items-center gap-1 text-gray-400 hover:text-pink-500 transition-colors ${isLiked ? 'text-pink-500' : ''}" title="Like"><span class="text-[10px] font-bold">${likeCount > 0 ? likeCount : ''}</span><svg class="w-3.5 h-3.5 ${isLiked ? 'fill-current' : 'fill-none'} stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg></button><button onclick="window.toggleReplyForm('${cid}')" class="text-gray-400 hover:text-blue-500 transition-colors" title="Balas"><svg class="w-3.5 h-3.5 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg></button>${canDelete ? `<button onclick="window.deleteComment('${itemId}', '${cid}')" class="text-gray-300 hover:text-red-500 transition-colors" title="Padam">&times;</button>` : ''}</div></div><p class="text-gray-600 leading-snug mb-2">${c.text}</p><div id="replies-container-${cid}" class="ml-2 pl-2 border-l-2 border-gray-100 space-y-2"><div id="reply-form-${cid}" class="hidden mt-2 flex gap-2"><input type="text" id="reply-input-${cid}" placeholder="Balas..." class="flex-1 p-1.5 text-xs border rounded bg-gray-50 focus:ring-1 focus:ring-blue-500"><button onclick="window.postReply('${itemId}', '${cid}', '${c.userId}')" class="text-blue-600 text-xs font-bold px-2">Hantar</button></div>`; els.commentsList.appendChild(div); const repliesContainer = div.querySelector(`#replies-container-${cid}`); listenToReplies(itemId, cid, repliesContainer); }); }); }
+        function listenToComments(itemId) { if (commentsUnsubscribe) commentsUnsubscribe(); Object.values(replyUnsubscribes).forEach(unsubscribe => unsubscribe()); replyUnsubscribes = {}; const commentsRef = collection(db, `${galleryRef.path}/${itemId}/comments`); const q = query(commentsRef, orderBy('timestamp', 'asc')); commentsUnsubscribe = onSnapshot(q, (snapshot) => { els.commentsList.innerHTML = ''; els.commentCount.textContent = snapshot.size; if (snapshot.empty) { els.commentsList.innerHTML = '<p class="text-center text-gray-400 text-sm italic py-4">Tiada komen lagi.</p>'; return; } snapshot.forEach(docSnap => { const c = docSnap.data(); const cid = docSnap.id; const isMyComment = currentUserId && c.userId === currentUserId; const canDelete = isMyComment || isSuperUser; const timeAgo = dayjs(c.timestamp).fromNow(); const likes = c.likes || []; const isLiked = currentUserId && likes.includes(currentUserId); const likeCount = likes.length; const div = document.createElement('div'); div.className = 'bg-white p-3 rounded-lg border border-gray-100 shadow-sm text-sm group'; div.innerHTML = `<div class="flex justify-between items-start mb-1"><div class="flex flex-col"><span class="font-bold text-gray-700 text-xs cursor-pointer hover:underline" onclick="window.showUserProfile('${c.userId}')">${c.userName || 'User'}</span><span class="text-[10px] text-gray-400">${timeAgo}</span></div><div class="flex items-center gap-2"><button onclick="window.toggleCommentLike('${itemId}', '${cid}', '${c.userId}')" class="flex items-center gap-1 text-gray-400 hover:text-pink-500 transition-colors ${isLiked ? 'text-pink-500' : ''}" title="Like"><span class="text-[10px] font-bold">${likeCount > 0 ? likeCount : ''}</span><svg class="w-3.5 h-3.5 ${isLiked ? 'fill-current' : 'fill-none'} stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg></button><button onclick="window.toggleReplyForm('${cid}')" class="text-gray-400 hover:text-blue-500 transition-colors" title="Balas"><svg class="w-3.5 h-3.5 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg></button>${canDelete ? `<button onclick="window.deleteComment('${itemId}', '${cid}')" class="text-gray-300 hover:text-red-500 transition-colors" title="Padam">&times;</button>` : ''}</div></div><p class="text-gray-600 leading-snug mb-2">${c.text}</p><div id="replies-container-${cid}" class="ml-2 pl-2 border-l-2 border-gray-100 space-y-2"></div><div id="reply-form-${cid}" class="hidden mt-2 flex gap-2"><input type="text" id="reply-input-${cid}" placeholder="Balas..." class="flex-1 p-1.5 text-xs border rounded bg-gray-50 focus:ring-1 focus:ring-blue-500"><button onclick="window.postReply('${itemId}', '${cid}', '${c.userId}')" class="text-blue-600 text-xs font-bold px-2">Hantar</button></div>`; els.commentsList.appendChild(div); const repliesContainer = div.querySelector(`#replies-container-${cid}`); listenToReplies(itemId, cid, repliesContainer); }); }); }
         window.postComment = async () => { const text = els.commentInput.value.trim(); if (!text) return; if (!currentUserId) return notify("Sila log masuk.", 'error'); const item = modalItems[currentModalIndex]; if (!item) return; const user = auth.currentUser; const commentData = { text: text, userId: currentUserId, userName: (user.displayName || 'User').split(' ')[0], timestamp: Date.now(), likes: [] }; try { els.commentInput.value = ''; const commentsRef = collection(db, `${galleryRef.path}/${item.id}/comments`); await addDoc(commentsRef, commentData); scrollToBottomComments(); if (item.userId && item.userId !== currentUserId) { const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${item.userId}/notifications`); addDoc(notifRef, { type: 'comment', fromName: commentData.userName, itemId: item.id, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error); } } catch (err) { console.error(err); notify("Gagal menghantar komen.", 'error'); } };
         window.deleteComment = async (itemId, commentId) => { if(!confirm("Padam komen ini?")) return; try { await deleteDoc(doc(db, `${galleryRef.path}/${itemId}/comments/${commentId}`)); notify("Komen dipadam."); } catch(err) { notify("Gagal padam komen.", 'error'); } };
         window.toggleCommentLike = async (itemId, commentId, commentOwnerId) => { if (!currentUserId) return notify("Log masuk untuk like.", 'error'); const commentRef = doc(db, `${galleryRef.path}/${itemId}/comments/${commentId}`); try { const snap = await import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js").then(m=>m.getDoc(commentRef)); if(snap.exists()) { const c = snap.data(); const likes = c.likes || []; if(likes.includes(currentUserId)) await updateDoc(commentRef, { likes: arrayRemove(currentUserId) }); else { await updateDoc(commentRef, { likes: arrayUnion(currentUserId) }); if(commentOwnerId && commentOwnerId !== currentUserId) { const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${commentOwnerId}/notifications`); const user = auth.currentUser; addDoc(notifRef, { type: 'like_comment', fromName: (user.displayName||'User').split(' ')[0], itemId: itemId, promptSnippet: c.text.substring(0, 15) + '...', timestamp: Date.now(), read: false }).catch(console.error); } } } } catch(e) { console.error(e); } };
@@ -487,11 +534,87 @@
         window.filterByUser = (uid, name) => { currentUserIdFilter = uid; els.userFilterName.textContent = name || 'User'; els.userFilterChip.classList.remove('hidden'); renderGallery(); };
         window.clearUserFilter = () => { currentUserIdFilter = null; els.userFilterChip.classList.add('hidden'); renderGallery(); };
         window.toggleLike = async (itemId, ownerId) => { if (!currentUserId) return notify("Sila log masuk untuk like.", 'error'); const item = allItems.find(i => i.id === itemId); if(!item) return; const isLiked = item.likes && item.likes.includes(currentUserId); const itemRef = doc(db, galleryRef.path, itemId); try { if (isLiked) await updateDoc(itemRef, { likes: arrayRemove(currentUserId) }); else { await updateDoc(itemRef, { likes: arrayUnion(currentUserId) }); notify("Liked!", 'success'); if (ownerId && ownerId !== currentUserId) { const notifRef = collection(db, `/artifacts/${appId}/public/data/users/${ownerId}/notifications`); const user = auth.currentUser; addDoc(notifRef, { type: 'like', fromName: user.displayName || 'Seseorang', itemId: itemId, promptSnippet: item.prompt.substring(0, 20) + '...', timestamp: Date.now(), read: false }).catch(console.error); } } } catch (err) { console.error(err); notify("Gagal like.", 'error'); } };
-        function renderGallery() { if(currentView === 'profile') return; let filtered = allItems.filter(item => { const itemCat = item.category || 'Umum'; return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter); }); let itemsToShow = []; if (currentView === 'gallery') itemsToShow = filtered.filter(item => item.status === 'approved' || !item.status); else if (currentView === 'liked') itemsToShow = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId)); else if (currentView === 'myprompt') itemsToShow = filtered.filter(item => item.userId === currentUserId); else if (currentView === 'pending') itemsToShow = filtered.filter(item => item.userId === currentUserId && item.status === 'pending'); else if (currentView === 'request') itemsToShow = filtered.filter(item => item.status === 'pending'); if(currentView === 'request') els.approveAllCount.textContent = itemsToShow.length; els.gallery.innerHTML = ''; if (itemsToShow.length === 0) { els.gallery.innerHTML = `<p class="text-gray-500 w-full text-center py-10">Tiada item dijumpai.</p>`; return; } itemsToShow.forEach(item => { const card = document.createElement('div'); card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative flex-grow hover:shadow-xl transition-shadow select-none overflow-hidden'; const isOwner = currentUserId && item.userId === currentUserId; const isPending = item.status === 'pending'; const canDelete = isOwner || isSuperUser; const likes = item.likes || []; const isLikedByMe = currentUserId && likes.includes(currentUserId); const heartColor = isLikedByMe ? 'text-red-500' : 'text-white'; const heartFill = isLikedByMe ? 'currentColor' : 'none'; const deleteBtn = canDelete ? `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-10 right-1 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : ''; let approveBtn = (isSuperUser && isPending && currentView === 'request') ? `<button onclick="event.stopPropagation(); window.approveItem('${item.id}')" class="approve-btn absolute top-1 left-1 z-20 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:bg-green-700 flex items-center gap-1">✓ Approve</button>` : ''; let statusBadge = (!isSuperUser && (currentView === 'myprompt' || currentView === 'pending')) ? `<span class="absolute top-1 left-1 z-10 ${isPending?'bg-yellow-500':'bg-green-500'} text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm uppercase font-bold tracking-wider opacity-90">${isPending?'Pending':'Approved'}</span>` : ''; const viewBtn = `<button onclick="event.stopPropagation(); window.openModal('${item.id}')" class="view-btn absolute bottom-2 right-2 z-20 bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black backdrop-blur-sm" title="Lihat Penuh"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>`; card.onclick = (e) => { if (!e.target.closest('button') && !e.target.closest('span[onclick]')) copyToClipboard(item.prompt); }; card.innerHTML = `<div class="relative overflow-hidden w-full h-full"><div class="absolute top-0 left-0 right-0 p-2 bg-black/50 flex justify-between items-center gap-2 z-10"><span onclick="event.stopPropagation(); window.filterByCategory('${item.category || 'Umum'}')" class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded uppercase tracking-wide truncate max-w-[120px] cursor-pointer hover:bg-blue-200 transition-colors">${item.category || 'Umum'}</span><span onclick="event.stopPropagation(); window.showUserProfile('${item.userId}')" class="text-[10px] text-white/90 truncate cursor-pointer hover:text-purple-300 hover:underline">By: ${item.userName || 'User'}</span></div>${deleteBtn} ${approveBtn} ${statusBadge} ${viewBtn}<img src="${item.imageUrl}" class="dynamic-img w-auto min-w-full object-cover block transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=Error'"><div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent pointer-events-none z-10 flex items-end justify-between gap-2"><div class="pointer-events-auto"><button onclick="event.stopPropagation(); window.toggleLike('${item.id}', '${item.userId}'); this.firstElementChild.classList.add('like-anim'); setTimeout(()=>this.firstElementChild.classList.remove('like-anim'),400);" class="flex items-center gap-1 text-white hover:scale-110 transition-transform bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm"><svg class="w-5 h-5 ${heartColor} transition-colors duration-300" fill="${heartFill}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><span class="text-xs font-bold">${likes.length}</span></button><button onclick="event.stopPropagation(); window.shareItem('${item.id}')" class="flex items-center gap-1 text-white hover:scale-110 transition-transform bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm ml-2"><svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button></div><p class="text-sm text-white line-clamp-1 font-medium text-right flex-1 opacity-90">${item.prompt}</p></div></div>`; els.gallery.appendChild(card); }); for(let i=0; i<8; i++) els.gallery.appendChild(document.createElement('div')).className = 'flex-grow h-0 p-0 m-0 opacity-0 border-0'; }
-        function updateModalContent(index) { if (index < 0 || index >= modalItems.length) return; const item = modalItems[index]; currentModalIndex = index; els.modalImg.src = item.imageUrl; els.modalPrompt.textContent = item.prompt; els.modalCategory.textContent = item.category || 'Umum'; els.modalUploader.innerHTML = `By: <span class="cursor-pointer hover:underline" onclick="window.showUserProfile('${item.userId}')">${item.userName || 'User'}</span>`; els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt); els.modalShareBtn.onclick = () => window.shareItem(item.id); const likes = item.likes || []; const isLikedByMe = currentUserId && likes.includes(currentUserId); els.modalLikeCount.textContent = likes.length; if (isLikedByMe) { els.modalHeartIcon.classList.add('text-red-500', 'fill-current'); els.modalHeartIcon.classList.remove('text-gray-500', 'fill-none'); els.modalLikeBtn.classList.add('bg-pink-50', 'border-pink-200'); } else { els.modalHeartIcon.classList.add('text-gray-500', 'fill-none'); els.modalHeartIcon.classList.remove('text-red-500', 'fill-current'); els.modalLikeBtn.classList.remove('bg-pink-50', 'border-pink-200'); } els.modalLikeBtn.onclick = () => { els.modalHeartIcon.classList.add('like-anim'); setTimeout(()=>els.modalHeartIcon.classList.remove('like-anim'), 400); window.toggleLike(item.id, item.userId); }; listenToComments(item.id); els.prevBtn.classList.toggle('hidden', currentModalIndex === 0); els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1); }
-        window.openModal = (id) => { let filtered = allItems.filter(item => { const itemCat = item.category || 'Umum'; return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter); }); if (currentView === 'profile') filtered = allItems.filter(i => i.userId === profileUserId && (i.status === 'approved' || !i.status || (currentUserId === profileUserId))); else if (currentView === 'gallery') filtered = filtered.filter(item => item.status === 'approved' || !item.status); else if (currentView === 'liked') filtered = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId)); else if (currentView === 'myprompt') filtered = filtered.filter(item => item.userId === currentUserId); else if (currentView === 'pending') filtered = filtered.filter(item => item.userId === currentUserId && item.status === 'pending'); else if (currentView === 'request') filtered = filtered.filter(item => item.status === 'pending'); modalItems = filtered; const initialIndex = modalItems.findIndex(i => i.id === id); if (initialIndex === -1) return; updateModalContent(initialIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; };
-        window.closeModal = () => { els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; if(commentsUnsubscribe) commentsUnsubscribe(); Object.values(replyUnsubscribes).forEach(un=>un()); replyUnsubscribes={}; };
-        window.showPrevItem = () => { if (currentModalIndex > 0) updateModalContent(currentModalIndex - 1); }; window.showNextItem = () => { if (currentModalIndex < modalItems.length - 1) updateModalContent(currentModalIndex + 1); };
+        
+        function renderGallery() {
+            if(currentView === 'profile') return; // Don't render main gallery if in profile view
+            
+            let filtered = allItems.filter(item => { const itemCat = item.category || 'Umum'; return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter); });
+            let itemsToShow = [];
+            if (currentView === 'gallery') itemsToShow = filtered.filter(item => item.status === 'approved' || !item.status);
+            else if (currentView === 'liked') itemsToShow = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId));
+            else if (currentView === 'myprompt') itemsToShow = filtered.filter(item => item.userId === currentUserId);
+            else if (currentView === 'pending') itemsToShow = filtered.filter(item => item.userId === currentUserId && item.status === 'pending');
+            else if (currentView === 'request') itemsToShow = filtered.filter(item => item.status === 'pending');
+            if(currentView === 'request') els.approveAllCount.textContent = itemsToShow.length;
+            els.gallery.innerHTML = ''; if (itemsToShow.length === 0) { els.gallery.innerHTML = `<p class="text-gray-500 w-full text-center py-10">Tiada item dijumpai.</p>`; return; }
+
+            itemsToShow.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'gallery-item group bg-white rounded-lg shadow-md cursor-pointer relative flex-grow hover:shadow-xl transition-shadow select-none overflow-hidden';
+                const isOwner = currentUserId && item.userId === currentUserId;
+                const isPending = item.status === 'pending';
+                const canDelete = isOwner || isSuperUser;
+                const likes = item.likes || []; const isLikedByMe = currentUserId && likes.includes(currentUserId); const heartColor = isLikedByMe ? 'text-red-500' : 'text-white'; const heartFill = isLikedByMe ? 'currentColor' : 'none';
+                const deleteBtn = canDelete ? `<button onclick="event.stopPropagation(); window.deleteItem('${item.id}')" class="delete-btn absolute top-10 right-1 z-20 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center shadow-sm hover:bg-red-700" title="Padam">&times;</button>` : '';
+                let approveBtn = (isSuperUser && isPending && currentView === 'request') ? `<button onclick="event.stopPropagation(); window.approveItem('${item.id}')" class="approve-btn absolute top-1 left-1 z-20 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-sm hover:bg-green-700 flex items-center gap-1">✓ Approve</button>` : '';
+                let statusBadge = (!isSuperUser && (currentView === 'myprompt' || currentView === 'pending')) ? `<span class="absolute top-1 left-1 z-10 ${isPending?'bg-yellow-500':'bg-green-500'} text-white text-[10px] px-2 py-0.5 rounded-full shadow-sm uppercase font-bold tracking-wider opacity-90">${isPending?'Pending':'Approved'}</span>` : '';
+                const viewBtn = `<button onclick="event.stopPropagation(); window.openModal('${item.id}')" class="view-btn absolute bottom-2 right-2 z-20 bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black backdrop-blur-sm" title="Lihat Penuh"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>`;
+                card.onclick = (e) => { if (!e.target.closest('button') && !e.target.closest('span[onclick]')) copyToClipboard(item.prompt); };
+                // Update By: to allow click to profile
+                card.innerHTML = `<div class="relative overflow-hidden w-full h-full"><div class="absolute top-0 left-0 right-0 p-2 bg-black/50 flex justify-between items-center gap-2 z-10"><span onclick="event.stopPropagation(); window.filterByCategory('${item.category || 'Umum'}')" class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded uppercase tracking-wide truncate max-w-[120px] cursor-pointer hover:bg-blue-200 transition-colors">${item.category || 'Umum'}</span><span onclick="event.stopPropagation(); window.showUserProfile('${item.userId}')" class="text-[10px] text-white/90 truncate cursor-pointer hover:text-purple-300 hover:underline">By: ${item.userName || 'User'}</span></div>${deleteBtn} ${approveBtn} ${statusBadge} ${viewBtn}<img src="${item.imageUrl}" class="dynamic-img w-auto min-w-full object-cover block transition-transform duration-500 group-hover:scale-105" onerror="this.src='https://placehold.co/600x400?text=Error'"><div class="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent pointer-events-none z-10 flex items-end justify-between gap-2"><div class="pointer-events-auto"><button onclick="event.stopPropagation(); window.toggleLike('${item.id}', '${item.userId}'); this.firstElementChild.classList.add('like-anim'); setTimeout(()=>this.firstElementChild.classList.remove('like-anim'),400);" class="flex items-center gap-1 text-white hover:scale-110 transition-transform bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm"><svg class="w-5 h-5 ${heartColor} transition-colors duration-300" fill="${heartFill}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg><span class="text-xs font-bold">${likes.length}</span></button><button onclick="event.stopPropagation(); window.shareItem('${item.id}')" class="flex items-center gap-1 text-white hover:scale-110 transition-transform bg-black/30 px-2 py-1 rounded-full backdrop-blur-sm ml-2"><svg class="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg></button></div><p class="text-sm text-white line-clamp-1 font-medium text-right flex-1 opacity-90">${item.prompt}</p></div></div>`; els.gallery.appendChild(card); }); for(let i=0; i<8; i++) els.gallery.appendChild(document.createElement('div')).className = 'flex-grow h-0 p-0 m-0 opacity-0 border-0'; }
+        function updateModalContent(index) { 
+            if (index < 0 || index >= modalItems.length) return; 
+            const item = modalItems[index]; currentModalIndex = index; 
+            els.modalImg.src = item.imageUrl; els.modalPrompt.textContent = item.prompt; els.modalCategory.textContent = item.category || 'Umum'; 
+            
+            // Update clickable uploader name in modal
+            els.modalUploader.innerHTML = `By: <span class="cursor-pointer hover:underline" onclick="window.showUserProfile('${item.userId}')">${item.userName || 'User'}</span>`;
+            
+            els.modalCopyBtn.onclick = () => copyToClipboard(item.prompt); 
+            
+            // Update Share Button for Modal
+            els.modalShareBtn.onclick = () => window.shareItem(item.id);
+
+            const likes = item.likes || []; const isLikedByMe = currentUserId && likes.includes(currentUserId); els.modalLikeCount.textContent = likes.length; if (isLikedByMe) { els.modalHeartIcon.classList.add('text-red-500', 'fill-current'); els.modalHeartIcon.classList.remove('text-gray-500', 'fill-none'); els.modalLikeBtn.classList.add('bg-pink-50', 'border-pink-200'); } else { els.modalHeartIcon.classList.add('text-gray-500', 'fill-none'); els.modalHeartIcon.classList.remove('text-red-500', 'fill-current'); els.modalLikeBtn.classList.remove('bg-pink-50', 'border-pink-200'); } els.modalLikeBtn.onclick = () => { els.modalHeartIcon.classList.add('like-anim'); setTimeout(()=>els.modalHeartIcon.classList.remove('like-anim'), 400); window.toggleLike(item.id, item.userId); }; listenToComments(item.id); els.prevBtn.classList.toggle('hidden', currentModalIndex === 0); els.nextBtn.classList.toggle('hidden', currentModalIndex === modalItems.length - 1); 
+        }
+        
+        window.openModal = (id) => {
+            let filtered = allItems.filter(item => { const itemCat = item.category || 'Umum'; return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter); });
+            if (currentView === 'profile') filtered = allItems.filter(i => i.userId === profileUserId && (i.status === 'approved' || !i.status || (currentUserId === profileUserId)));
+            else if (currentView === 'gallery') filtered = filtered.filter(item => item.status === 'approved' || !item.status);
+            else if (currentView === 'liked') filtered = filtered.filter(item => (item.status === 'approved' || !item.status) && item.likes && item.likes.includes(currentUserId));
+            else if (currentView === 'myprompt') filtered = filtered.filter(item => item.userId === currentUserId);
+            else if (currentView === 'pending') filtered = filtered.filter(item => item.userId === currentUserId && item.status === 'pending');
+            else if (currentView === 'request') filtered = filtered.filter(item => item.status === 'pending');
+            
+            modalItems = filtered; // Sync modal items list
+            const initialIndex = modalItems.findIndex(i => i.id === id); if (initialIndex === -1) return; updateModalContent(initialIndex); els.modal.classList.remove('hidden'); document.body.style.overflow = 'hidden'; 
+            
+            // Update URL (Deep Link)
+            updateUrlState({ id: id, view: currentView });
+        };
+        window.closeModal = () => { 
+            els.modal.classList.add('hidden'); document.body.style.overflow = ''; currentModalIndex = -1; modalItems = []; if(commentsUnsubscribe) commentsUnsubscribe(); Object.values(replyUnsubscribes).forEach(un=>un()); replyUnsubscribes={}; 
+            
+            // Revert URL to current view only
+            updateUrlState({ view: currentView });
+        };
+        
+        window.showPrevItem = () => { 
+            if (currentModalIndex > 0) {
+                const newIndex = currentModalIndex - 1;
+                updateModalContent(newIndex); 
+                updateUrlState({ id: modalItems[newIndex].id, view: currentView });
+            } 
+        }; 
+        window.showNextItem = () => { 
+            if (currentModalIndex < modalItems.length - 1) {
+                const newIndex = currentModalIndex + 1;
+                updateModalContent(newIndex);
+                updateUrlState({ id: modalItems[newIndex].id, view: currentView });
+            } 
+        };
+        
         els.modalImageArea.addEventListener('touchstart', (e) => { touchstartX = e.changedTouches[0].screenX; }, false); els.modalImageArea.addEventListener('touchend', (e) => { if (Math.abs(e.changedTouches[0].screenX - touchstartX) > 50) e.changedTouches[0].screenX < touchstartX ? window.showNextItem() : window.showPrevItem(); touchstartX = 0; }, false);
         window.addItem = async (e) => { e.preventDefault(); if (!currentUserId) return notify("Sila log masuk.", 'error'); els.submitBtn.disabled = true; els.submitBtn.innerText = "Menghantar..."; const user = auth.currentUser; const newItem = { imageUrl: document.getElementById('image-url').value.trim(), prompt: document.getElementById('image-prompt').value.trim(), category: els.catSelect.value || document.getElementById('new-category').value.trim() || 'Umum', timestamp: Date.now(), userId: currentUserId, userName: (user.displayName || 'User').split(' ')[0], status: 'pending', likes: [] }; if (document.getElementById('new-category').value.trim()) setDoc(doc(db, categoriesRef.path, newItem.category), { name: newItem.category }).catch(console.error); try { await addDoc(galleryRef, newItem); els.addForm.reset(); els.toggleFormBtn.click(); notify("Berjaya dihantar! Menunggu kelulusan admin."); switchView('pending'); } catch (err) { console.error(err); notify("Gagal menghantar.", 'error'); } finally { els.submitBtn.disabled = false; els.submitBtn.innerText = "Hantar untuk Approval"; } };
         window.deleteItem = async (id) => { if(confirm("Padam item ini?")) try { await deleteDoc(doc(db, galleryRef.path, id)); notify("Item dipadam."); } catch(err) { notify("Gagal memadam.", 'error'); } };
@@ -505,8 +628,35 @@
             onSnapshot(query(galleryRef), snap => { 
                 allItems = []; snap.forEach(d => allItems.push({id: d.id, ...d.data()})); allItems.sort((a, b) => b.timestamp - a.timestamp); updateCounts(); 
                 if(currentView === 'profile') renderProfileGallery(profileUserId); else renderGallery();
-                if (!els.modal.classList.contains('hidden') && currentModalIndex !== -1) { const currentItem = modalItems[currentModalIndex]; if(currentItem) { const updatedItem = allItems.find(i => i.id === currentItem.id); if(updatedItem) { modalItems[currentModalIndex] = updatedItem; updateModalContent(currentModalIndex); } } } 
+                
+                // Handle Deep Link on Initial Load
+                if (isInitialLoad) {
+                    const params = new URLSearchParams(window.location.search);
+                    const view = params.get('view');
+                    const id = params.get('id');
+                    
+                    if (view) {
+                        if (view !== 'gallery') window.switchView(view);
+                    }
+                    
+                    if (id && !els.modal.classList.contains('hidden') === false) {
+                        const itemIndex = allItems.findIndex(i => i.id === id);
+                        if (itemIndex !== -1) {
+                             let filtered = allItems.filter(item => { const itemCat = item.category || 'Umum'; return (currentCategory === 'all' || itemCat === currentCategory) && (!currentUserIdFilter || item.userId === currentUserIdFilter); });
+                             if (currentView === 'gallery') filtered = filtered.filter(item => item.status === 'approved' || !item.status);
+                             modalItems = allItems;
+                             updateModalContent(itemIndex);
+                             els.modal.classList.remove('hidden');
+                             document.body.style.overflow = 'hidden';
+                             currentModalIndex = itemIndex;
+                        }
+                    }
+                    isInitialLoad = false;
+                } else {
+                    if (!els.modal.classList.contains('hidden') && currentModalIndex !== -1) { const currentItem = modalItems[currentModalIndex]; if(currentItem) { const updatedItem = allItems.find(i => i.id === currentItem.id); if(updatedItem) { modalItems[currentModalIndex] = updatedItem; updateModalContent(currentModalIndex); } } } 
+                }
             }); 
+            
             onAuthStateChanged(auth, async user => { 
                 if (user) { 
                     currentUserId = user.uid; isSuperUser = user.email === SUPER_USER_EMAIL; 
@@ -520,7 +670,11 @@
                     } catch(e) { console.error("Error autosave profile", e); }
                     updateMobileMenuUI(user);
                 } else { 
-                    currentUserId = null; isSuperUser = false; els.userWelcome.classList.add('hidden'); els.loginBtn.classList.remove('hidden'); els.userControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden'); els.commentInputArea.classList.add('hidden'); els.loginToComment.classList.remove('hidden'); switchView('gallery'); 
+                    currentUserId = null; isSuperUser = false; els.userWelcome.classList.add('hidden'); els.loginBtn.classList.remove('hidden'); els.userControls.classList.add('hidden'); els.addFormContainer.classList.add('hidden'); els.commentInputArea.classList.add('hidden'); els.loginToComment.classList.remove('hidden'); 
+                    // Keep view if deep linking, otherwise switch
+                    const params = new URLSearchParams(window.location.search);
+                    if (!params.get('view')) switchView('gallery');
+                    
                     updateMobileMenuUI(null);
                 } 
                 renderGallery(); 
